@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "description": "Background Windows companion for SID UNIVERSE activity detection and real-time synchronization.",
   "main": "src/main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sidd2083/sid-universe.git"
+  },
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win",
-    "build:portable": "electron-builder --win portable",
+    "build": "electron-builder --win --publish never",
+    "build:portable": "electron-builder --win portable --publish never",
     "pack": "electron-builder --dir"
   },
   "keywords": [

@@ -22,7 +22,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: companion/package.json
 
@@ -34,7 +34,6 @@ jobs:
         working-directory: ./companion
         run: |
           npm run build
-          npm run build:portable
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -42,14 +41,20 @@ jobs:
         working-directory: ./companion/dist
         shell: pwsh
         run: |
+          Get-ChildItem -Filter "*.exe"
           $installer = Get-ChildItem -Filter "*Setup*.exe" | Select-Object -First 1
           if ($installer) {
-            Copy-Item $installer.FullName -Destination "Sid-Companion-Setup.exe"
+            Copy-Item $installer.FullName -Destination "Sid-Companion-Setup.exe" -Force
             Write-Host "Created Sid-Companion-Setup.exe from $($installer.Name)"
+          } else {
+            $anyExe = Get-ChildItem -Filter "*.exe" | Select-Object -First 1
+            if ($anyExe) {
+              Copy-Item $anyExe.FullName -Destination "Sid-Companion-Setup.exe" -Force
+            }
           }
-          $portable = Get-ChildItem -Filter "*portable*.exe" | Select-Object -First 1
+          $portable = Get-ChildItem -Filter "*.exe" | Where-Object { $_.Name -notlike "*Setup*" } | Select-Object -First 1
           if ($portable) {
-            Copy-Item $portable.FullName -Destination "Sid-Companion-Portable.exe"
+            Copy-Item $portable.FullName -Destination "Sid-Companion-Portable.exe" -Force
             Write-Host "Created Sid-Companion-Portable.exe from $($portable.Name)"
           }
 
@@ -69,13 +74,14 @@ jobs:
           files: |
             companion/dist/Sid-Companion-Setup.exe
             companion/dist/Sid-Companion-Portable.exe
+            companion/dist/*.exe
           name: Sid Companion ${{ github.ref_name }}
           body: |
             ## SID COMPANION — Windows Official Release
             
             Background telemetry client for **SID UNIVERSE**.
             
-            ### Downloads:
+            ### Direct Downloads:
             - **[Sid-Companion-Setup.exe](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/Sid-Companion-Setup.exe)** (Standard Windows Installer)
             - **[Sid-Companion-Portable.exe](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/Sid-Companion-Portable.exe)** (Standalone / No install needed)
             
