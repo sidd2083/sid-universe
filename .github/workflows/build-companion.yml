@@ -1,0 +1,87 @@
+name: Build Sid Companion Windows Executable
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: companion/package.json
+
+      - name: Install Companion Dependencies
+        working-directory: ./companion
+        run: npm ci || npm install
+
+      - name: Build Sid Companion Executables (Installer & Portable)
+        working-directory: ./companion
+        run: |
+          npm run build
+          npm run build:portable
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rename Artefacts for Release
+        working-directory: ./companion/dist
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem -Filter "*Setup*.exe" | Select-Object -First 1
+          if ($installer) {
+            Copy-Item $installer.FullName -Destination "Sid-Companion-Setup.exe"
+            Write-Host "Created Sid-Companion-Setup.exe from $($installer.Name)"
+          }
+          $portable = Get-ChildItem -Filter "*portable*.exe" | Select-Object -First 1
+          if ($portable) {
+            Copy-Item $portable.FullName -Destination "Sid-Companion-Portable.exe"
+            Write-Host "Created Sid-Companion-Portable.exe from $($portable.Name)"
+          }
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sid-companion-windows-binaries
+          path: |
+            companion/dist/Sid-Companion-Setup.exe
+            companion/dist/Sid-Companion-Portable.exe
+            companion/dist/*.exe
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            companion/dist/Sid-Companion-Setup.exe
+            companion/dist/Sid-Companion-Portable.exe
+          name: Sid Companion ${{ github.ref_name }}
+          body: |
+            ## SID COMPANION — Windows Official Release
+            
+            Background telemetry client for **SID UNIVERSE**.
+            
+            ### Downloads:
+            - **[Sid-Companion-Setup.exe](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/Sid-Companion-Setup.exe)** (Standard Windows Installer)
+            - **[Sid-Companion-Portable.exe](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/Sid-Companion-Portable.exe)** (Standalone / No install needed)
+            
+            ### Setup:
+            1. Launch Sid Companion.
+            2. Enter your SID UNIVERSE URL and Secret Telemetry Token from the Admin Panel.
+            3. Enjoy seamless real-time activity synchronization!
+          draft: false
+          prerelease: false

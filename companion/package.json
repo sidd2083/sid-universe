@@ -1,0 +1,53 @@
+{
+  "name": "sid-companion",
+  "version": "1.0.0",
+  "description": "Background Windows companion for SID UNIVERSE activity detection and real-time synchronization.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "build:portable": "electron-builder --win portable",
+    "pack": "electron-builder --dir"
+  },
+  "keywords": [
+    "sid-universe",
+    "presence",
+    "gaming",
+    "spotify",
+    "windows-companion"
+  ],
+  "author": "Sid",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.siduniverse.companion",
+    "productName": "Sid Companion",
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "resources/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Sid Companion"
+    },
+    "files": [
+      "src/**/*",
+      "resources/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    }
+  }
+}
