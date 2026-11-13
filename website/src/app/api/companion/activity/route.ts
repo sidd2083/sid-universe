@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { db } from '@/lib/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export async function POST(req: Request) {
   try {
@@ -13,8 +15,41 @@ export async function POST(req: Request) {
 
     const payload = await req.json();
 
-    // The activity payload contains:
-    // isOnline, game, music, coding, customStatus, lastHeartbeat
+    try {
+      const updateData: any = {
+        status: payload.isOnline ? 'online' : 'offline',
+        updatedAt: serverTimestamp(),
+        lastActive: serverTimestamp()
+      };
+      if (payload.customStatus) {
+        updateData.customStatus = payload.customStatus;
+      }
+      if (payload.currentGame) {
+        updateData.currentGame = {
+          name: payload.currentGame.title || payload.currentGame.name || 'Active Game',
+          platform: payload.currentGame.platform || 'PC'
+        };
+      }
+      if (payload.currentMusic) {
+        updateData.currentMusic = {
+          title: payload.currentMusic.title || 'Unknown Title',
+          artist: payload.currentMusic.artist || 'Unknown Artist',
+          isPlaying: true
+        };
+      }
+      if (payload.currentCoding) {
+        updateData.codingActivity = {
+          project: payload.currentCoding.project || 'SID UNIVERSE',
+          file: payload.currentCoding.file || '',
+          editor: payload.currentCoding.editor || 'VS Code'
+        };
+      }
+
+      await setDoc(doc(db, 'publicActivity', 'current'), updateData, { merge: true });
+    } catch (e: any) {
+      console.warn('Companion activity Firestore write notice:', e?.message);
+    }
+
     return NextResponse.json({
       success: true,
       data: payload,

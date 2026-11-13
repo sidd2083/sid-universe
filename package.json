@@ -1,0 +1,12 @@
+{
+  "name": "sid-universe-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SID UNIVERSE - Interactive 3D Cosmic Portfolio & Companion Ecosystem",
+  "scripts": {
+    "dev": "npm --prefix website run dev",
+    "build": "npm --prefix website run build",
+    "start": "npm --prefix website run start",
+    "lint": "npm --prefix website run lint"
+  }
+}

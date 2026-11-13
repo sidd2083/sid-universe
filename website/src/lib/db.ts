@@ -13,6 +13,7 @@ import {
   SiteSettings,
   TimelineMilestone
 } from './types';
+import { listenCollection, listenDocument, saveDocument } from './firestoreService';
 
 // Default initial data for Sid's Universe
 export const DEFAULT_SETTINGS: SiteSettings = {
@@ -441,12 +442,17 @@ export const DEFAULT_ACTIVITY: PublicActivity = {
   lastActiveTime: new Date().toISOString()
 };
 
-// Safe in-memory and localStorage unified store
+// Safe in-memory and localStorage unified store with live Firestore sync
 class UniverseStore {
   private memoryStore: Record<string, any> = {};
+  private isListeningToFirestore = false;
 
   constructor() {
     this.init();
+    if (typeof window !== 'undefined') {
+      // Delay Firestore listeners slightly to ensure DOM & React hydration completes
+      setTimeout(() => this.initFirestore(), 100);
+    }
   }
 
   private init() {
@@ -479,6 +485,50 @@ class UniverseStore {
     }
   }
 
+  private initFirestore() {
+    if (typeof window === 'undefined' || this.isListeningToFirestore) return;
+    this.isListeningToFirestore = true;
+
+    try {
+      // 1. Single document listeners
+      listenDocument<SiteSettings>('siteSettings', 'general', (data) => {
+        if (data && Object.keys(data).length > 1) {
+          this.updateLocal('siteSettings', { ...DEFAULT_SETTINGS, ...data });
+        }
+      });
+
+      listenDocument<PublicActivity>('publicActivity', 'current', (data) => {
+        if (data && Object.keys(data).length > 1) {
+          this.updateLocal('publicActivity', { ...DEFAULT_ACTIVITY, ...data });
+        }
+      });
+
+      // 2. Collection listeners
+      const collectionsToListen = [
+        { col: 'planets', key: 'planets' },
+        { col: 'projects', key: 'projects' },
+        { col: 'learningTopics', key: 'learningTopics' },
+        { col: 'games', key: 'games' },
+        { col: 'songs', key: 'songs' },
+        { col: 'playlists', key: 'playlists' },
+        { col: 'watchlist', key: 'watchlist' },
+        { col: 'publishedQA', key: 'publishedQA' },
+        { col: 'timeline', key: 'timeline' },
+        { col: 'anonymousMessages', key: 'anonymousMessages' }
+      ];
+
+      collectionsToListen.forEach(({ col, key }) => {
+        listenCollection(col, (items) => {
+          if (items && items.length > 0) {
+            this.updateLocal(key, items);
+          }
+        });
+      });
+    } catch (e) {
+      console.warn('Firestore live listener initialization notice:', e);
+    }
+  }
+
   private loadOrSeed(key: string, defaultValue: any) {
     try {
       const stored = localStorage.getItem(`sid_universe_${key}`);
@@ -493,6 +543,16 @@ class UniverseStore {
     }
   }
 
+  private updateLocal(key: string, value: any) {
+    this.memoryStore[key] = value;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(`sid_universe_${key}`, JSON.stringify(value));
+        window.dispatchEvent(new CustomEvent('sid_store_updated', { detail: { key, value } }));
+      } catch (e) {}
+    }
+  }
+
   public get<T>(key: string, fallback: T): T {
     if (typeof window !== 'undefined') {
       try {
@@ -504,12 +564,29 @@ class UniverseStore {
   }
 
   public set<T>(key: string, value: T): void {
-    this.memoryStore[key] = value;
+    this.updateLocal(key, value);
+
+    // Asynchronously synchronize with Firestore
     if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(`sid_universe_${key}`, JSON.stringify(value));
-        window.dispatchEvent(new CustomEvent('sid_store_updated', { detail: { key, value } }));
-      } catch (e) {}
+      this.syncToFirestore(key, value).catch(() => {});
+    }
+  }
+
+  private async syncToFirestore(key: string, value: any) {
+    try {
+      if (key === 'siteSettings') {
+        await saveDocument('siteSettings', 'general', value);
+      } else if (key === 'publicActivity') {
+        await saveDocument('publicActivity', 'current', value);
+      } else if (Array.isArray(value)) {
+        for (const item of value) {
+          if (item && item.id) {
+            await saveDocument(key, item.id, item);
+          }
+        }
+      }
+    } catch (e) {
+      // Non-blocking fallback
     }
   }
 }

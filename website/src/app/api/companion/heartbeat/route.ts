@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { db } from '@/lib/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export async function POST(req: Request) {
   try {
@@ -12,7 +14,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized companion client' }, { status: 401 });
     }
 
-    const body = await req.json().catch(() => ({}));
+    try {
+      await setDoc(
+        doc(db, 'publicActivity', 'current'),
+        {
+          status: 'online',
+          lastActive: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        },
+        { merge: true }
+      );
+    } catch (e: any) {
+      console.warn('Companion heartbeat Firestore write notice:', e?.message);
+    }
 
     return NextResponse.json({
       success: true,

@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export async function POST(req: Request) {
   try {
@@ -18,12 +20,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Message exceeds maximum length of 2000 characters.' }, { status: 400 });
     }
 
-    // In a live Firebase environment, we would do:
-    // await adminDb.collection('anonymousMessages').add({ message: trimmed, createdAt: new Date().toISOString(), isRead: false, isPublished: false });
-    
+    let docId = `msg-${Date.now()}`;
+    try {
+      const docRef = await addDoc(collection(db, 'anonymousMessages'), {
+        content: trimmed,
+        createdAt: serverTimestamp(),
+        isRead: false,
+        isPublished: false,
+        isArchived: false
+      });
+      docId = docRef.id;
+    } catch (fsErr: any) {
+      console.warn('Firestore write notice in /api/messages:', fsErr?.message);
+    }
+
     return NextResponse.json({
       success: true,
-      id: `msg-${Date.now()}`,
+      id: docId,
       createdAt: new Date().toISOString()
     });
   } catch (error: any) {
