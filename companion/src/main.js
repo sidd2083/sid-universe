@@ -14,13 +14,14 @@ const CONFIG_PATH = path.join(app.getPath('userData'), 'sid-companion-config.jso
 let config = {
   apiUrl: 'http://localhost:3000',
   apiToken: 'sid_universe_secret_token_demo_2026',
-  stealthMode: false,
-  autoLaunch: false,
+  shareActivity: true, // Master Switch
+  shareBrowser: true,
   shareGaming: true,
   shareMusic: true,
   shareCoding: true,
-  shareCustomStatus: true,
-  customStatus: 'Exploring the cosmos 🚀'
+  customStatus: 'Building StudentHub Nepal & learning Python',
+  currentProject: 'StudentHub Nepal',
+  autoLaunch: false
 };
 
 function loadConfig() {
@@ -30,7 +31,7 @@ function loadConfig() {
       config = { ...config, ...JSON.parse(data) };
     }
   } catch (err) {
-    console.error('Failed to read config:', err);
+    console.warn('Failed to read config file:', err);
   }
   apiClient.configure(config.apiUrl, config.apiToken);
 }
@@ -41,7 +42,6 @@ function saveConfig(newConfig) {
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf8');
     apiClient.configure(config.apiUrl, config.apiToken);
 
-    // Apply autoLaunch
     if (process.platform === 'win32') {
       app.setLoginItemSettings({
         openAtLogin: !!config.autoLaunch,
@@ -49,16 +49,15 @@ function saveConfig(newConfig) {
       });
     }
   } catch (err) {
-    console.error('Failed to save config:', err);
+    console.warn('Failed to save config:', err);
   }
 }
 
-// Local HTTP Server for Chrome Extension integration
+// Local HTTP Server for Chrome Extension integration (Port 49152)
 let localServer = null;
 function startLocalExtensionServer() {
   try {
     localServer = http.createServer((req, res) => {
-      // CORS headers
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -69,16 +68,13 @@ function startLocalExtensionServer() {
         return;
       }
 
-      if (req.method === 'POST' && req.url === '/media') {
+      if (req.method === 'POST' && (req.url === '/activity' || req.url === '/media')) {
         let body = '';
         req.on('data', chunk => { body += chunk; });
         req.on('end', () => {
           try {
             const data = JSON.parse(body);
-            activityDetector.setBrowserMedia({
-              ...data,
-              timestamp: Date.now()
-            });
+            activityDetector.setBrowserTab(data);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ success: true }));
           } catch (e) {
@@ -94,24 +90,24 @@ function startLocalExtensionServer() {
     });
 
     localServer.listen(49152, '127.0.0.1', () => {
-      console.log('Sid Companion Extension receiver listening on 127.0.0.1:49152');
+      console.log('Sid Companion extension bridge active on 127.0.0.1:49152');
     });
 
     localServer.on('error', (err) => {
-      console.warn('Local extension server port warning:', err.message);
+      console.warn('Local extension port 49152 notice:', err.message);
     });
   } catch (e) {
-    console.warn('Could not start local receiver:', e.message);
+    console.warn('Could not launch local receiver:', e.message);
   }
 }
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
-    width: 820,
-    height: 640,
-    minWidth: 700,
-    minHeight: 520,
-    backgroundColor: '#030712',
+    width: 760,
+    height: 600,
+    minWidth: 640,
+    minHeight: 500,
+    backgroundColor: '#FAF9F6', // Apple warm white
     icon: path.join(__dirname, '../resources/icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -119,7 +115,7 @@ function createMainWindow() {
       contextIsolation: true
     },
     frame: true,
-    title: 'SID COMPANION — Universe Telemetry'
+    title: 'Sid Companion'
   });
 
   mainWindow.loadFile(path.join(__dirname, 'ui/index.html'));
@@ -134,14 +130,8 @@ function createMainWindow() {
 }
 
 function createTray() {
-  // Use a fallback empty or basic icon if resource icon is not yet present
-  let iconPath = path.join(__dirname, '../resources/icon.ico');
-  if (!fs.existsSync(iconPath)) {
-    // Generate a simple 16x16 icon in memory if file doesn't exist
-    tray = new Tray(nativeImage.createEmpty());
-  } else {
-    tray = new Tray(iconPath);
-  }
+  const iconPath = path.join(__dirname, '../resources/icon.ico');
+  tray = fs.existsSync(iconPath) ? new Tray(iconPath) : new Tray(nativeImage.createEmpty());
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -154,23 +144,23 @@ function createTray() {
       }
     },
     {
-      label: 'Stealth Mode (Pause Sync)',
+      label: 'Share Activity',
       type: 'checkbox',
-      checked: config.stealthMode,
+      checked: config.shareActivity,
       click: (item) => {
-        config.stealthMode = item.checked;
+        config.shareActivity = item.checked;
         saveConfig(config);
         broadcastStatus();
       }
     },
     { type: 'separator' },
     {
-      label: 'Sync Now',
+      label: 'Sync Activity Now',
       click: () => syncTelemetry()
     },
     { type: 'separator' },
     {
-      label: 'Quit Sid Companion',
+      label: 'Exit Companion',
       click: () => {
         isQuitting = true;
         app.quit();
@@ -178,7 +168,7 @@ function createTray() {
     }
   ]);
 
-  tray.setToolTip('SID UNIVERSE — Companion');
+  tray.setToolTip('Sid Companion — Personal Activity Sync');
   tray.setContextMenu(contextMenu);
 
   tray.on('double-click', () => {
@@ -189,8 +179,8 @@ function createTray() {
   });
 }
 
-// Telemetry scanning & synchronization loop
-let latestDetected = { game: null, coding: null, music: null };
+// Background Activity Scanning & Syncing
+let latestDetected = { game: null, coding: null, music: null, currentApp: null, browserTab: null };
 
 async function performActivityScan() {
   try {
@@ -199,26 +189,28 @@ async function performActivityScan() {
       mainWindow.webContents.send('activity-detected', latestDetected);
     }
   } catch (err) {
-    console.error('Scan error:', err);
+    console.warn('Process scan notice:', err);
   }
 }
 
 async function syncTelemetry() {
-  if (config.stealthMode) {
-    // When stealth mode is active, send heartbeat with stealth indicator or paused
-    await apiClient.sendHeartbeat();
+  if (!config.shareActivity) {
+    // Sharing paused by master switch
     broadcastStatus();
     return;
   }
 
-  // Filter approved activity according to user's privacy toggles
+  // Filter approved activity according to sub-toggles
   const payload = {
     isOnline: true,
     lastHeartbeat: new Date().toISOString(),
     game: config.shareGaming ? latestDetected.game : null,
     music: config.shareMusic ? latestDetected.music : null,
     coding: config.shareCoding ? latestDetected.coding : null,
-    customStatus: config.shareCustomStatus ? config.customStatus : null
+    browserTab: config.shareBrowser ? latestDetected.browserTab : null,
+    currentApp: latestDetected.currentApp || null,
+    customStatus: config.customStatus || null,
+    sharingPaused: !config.shareActivity
   };
 
   await apiClient.sendActivityUpdate(payload);
@@ -248,26 +240,21 @@ ipcMain.handle('get-status', () => ({
   lastSyncTime: apiClient.lastSyncTime,
   latestDetected: latestDetected
 }));
-ipcMain.handle('trigger-scan', async () => {
+ipcMain.handle('trigger-sync', async () => {
   await performActivityScan();
   await syncTelemetry();
   return { success: true };
 });
-ipcMain.handle('toggle-stealth', () => {
-  config.stealthMode = !config.stealthMode;
-  saveConfig(config);
-  return config.stealthMode;
-});
-ipcMain.handle('set-custom-status', (_event, status) => {
-  config.customStatus = status;
+ipcMain.handle('toggle-master-share', () => {
+  config.shareActivity = !config.shareActivity;
   saveConfig(config);
   syncTelemetry();
-  return config.customStatus;
+  return config.shareActivity;
 });
 
-// App lifecycle
-const gotTheLock = app.requestSingleInstanceLock();
-if (!gotTheLock) {
+// App Lifecycle
+const singleLock = app.requestSingleInstanceLock();
+if (!singleLock) {
   app.quit();
 } else {
   app.on('second-instance', () => {
@@ -284,14 +271,10 @@ if (!gotTheLock) {
     createTray();
     startLocalExtensionServer();
 
-    // Start background activity loops
     performActivityScan();
     syncTelemetry();
 
-    // Scan processes every 6 seconds
     setInterval(performActivityScan, 6000);
-
-    // Transmit heartbeat & activity every 12 seconds
     setInterval(syncTelemetry, 12000);
 
     app.on('activate', () => {

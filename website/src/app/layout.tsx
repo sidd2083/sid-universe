@@ -4,8 +4,8 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
 export const metadata: Metadata = {
-  title: 'SID UNIVERSE — The Interactive Digital Cosmos of Sid',
-  description: 'A 3D solar system representing the digital world of Sid. Explore creations, active studies, gaming, music, watchlist, and live Windows telemetry.',
+  title: 'Sid — Personal Space',
+  description: 'The personal digital world of Sid from Hetauda, Nepal. Exploring technology, software, learning, and ideas.',
 };
 
 export default function RootLayout({
@@ -14,8 +14,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="cosmic-bg min-h-screen flex flex-col text-slate-100 antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+    <html lang="en">
+      <body className="min-h-screen flex flex-col bg-warm-bg text-warm-text font-sans antialiased">
         <Header />
         <main className="flex-1 w-full">
           {children}

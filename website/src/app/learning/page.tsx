@@ -4,144 +4,130 @@ import React, { useEffect, useState } from 'react';
 import SectionHeader from '@/components/layout/SectionHeader';
 import { universeStore, DEFAULT_LEARNING } from '@/lib/db';
 import { LearningTopic } from '@/lib/types';
-import { BookOpen, ExternalLink, Sparkles, Filter, Brain, CheckCircle, Clock } from 'lucide-react';
+import { ExternalLink, BookOpen, Sparkles } from 'lucide-react';
 
 export default function LearningPage() {
   const [topics, setTopics] = useState<LearningTopic[]>(DEFAULT_LEARNING);
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
   useEffect(() => {
     setTopics(universeStore.get('learningTopics', DEFAULT_LEARNING));
   }, []);
 
-  const categories = [
-    'All',
-    'Programming',
-    'AI & ML',
-    'Cybersecurity',
-    'Web Development',
-    '3D & Blender',
-    'Video Editing'
-  ];
-
-  const filteredTopics = topics.filter(
-    (t) => selectedCategory === 'All' || t.category === selectedCategory
-  );
+  const currentlyLearning = topics.filter((t) => t.categoryType === 'currently-learning');
+  const wantToLearn = topics.filter((t) => t.categoryType === 'want-to-learn');
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-12">
       <SectionHeader
-        planetName="SYNAPSE"
-        sector="Sector 03: Knowledge & Growth"
-        planetColor="#a855f7"
-        title="Knowledge Nexus & Active Studies"
-        description="The neural knowledge sphere tracking what I am currently studying in programming, machine learning, systems architecture, and 3D graphics."
+        category="Continuous Education"
+        title="Learning & Exploring"
+        description="An endless list of things to learn. A few unfinished courses. And somehow, always something new to explore."
       />
 
-      {/* Category Filter Pills */}
-      <div className="flex flex-wrap items-center gap-2 mb-10 pb-6 border-b border-space-border/60">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-mono transition ${
-              selectedCategory === cat
-                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/60 font-bold shadow-[0_0_12px_rgba(168,85,247,0.25)]'
-                : 'bg-space-900 text-slate-400 hover:text-white border border-space-border'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
+      {/* 1. Currently Learning */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 pb-2 border-b border-warm-border/60">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+          <h2 className="text-base font-mono uppercase tracking-wider font-semibold text-warm-text">
+            Currently Learning & Working With
+          </h2>
+        </div>
 
-      {/* Topics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
-        {filteredTopics.map((topic) => (
-          <div
-            key={topic.id}
-            className="glass-panel rounded-2xl p-6 border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 flex flex-col justify-between shadow-xl"
-          >
-            <div>
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <span className="text-[10px] font-mono px-2.5 py-1 rounded bg-purple-950/70 border border-purple-800/40 text-purple-300 uppercase tracking-wider font-semibold">
-                  {topic.category}
-                </span>
-
-                <div className="flex items-center gap-1.5 text-xs font-mono">
-                  {topic.status === 'Mastered' ? (
-                    <span className="flex items-center gap-1 text-emerald-400">
-                      <CheckCircle size={13} />
-                      <span>Mastered</span>
+        <div className="space-y-4">
+          {currentlyLearning.map((topic) => (
+            <div key={topic.id} className="apple-card p-6 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="px-2 py-0.5 rounded-md bg-warm-subtle text-[10px] font-mono font-medium text-warm-secondary">
+                      {topic.category}
                     </span>
-                  ) : (
-                    <span className="flex items-center gap-1 text-purple-400">
-                      <Clock size={13} />
-                      <span>{topic.status}</span>
+                    <span className="text-xs font-mono text-warm-muted">
+                      Status: {topic.status}
                     </span>
-                  )}
+                  </div>
+                  <h3 className="text-lg font-bold text-warm-text">
+                    {topic.title}
+                  </h3>
                 </div>
+
+                {topic.progress !== undefined && (
+                  <div className="text-right shrink-0">
+                    <span className="text-sm font-mono font-bold text-warm-text">
+                      {topic.progress}%
+                    </span>
+                    <div className="w-24 h-1.5 rounded-full bg-warm-subtle overflow-hidden mt-1">
+                      <div
+                        className="h-full bg-warm-text rounded-full"
+                        style={{ width: `${topic.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <h3 className="text-lg font-bold text-white mb-2">
-                {topic.title}
-              </h3>
-
-              <p className="text-xs text-slate-300 leading-relaxed mb-4">
+              <p className="text-xs sm:text-sm text-warm-secondary leading-relaxed">
                 {topic.description}
               </p>
 
-              {/* Progress Indicator */}
-              {topic.progress !== undefined && (
-                <div className="mb-4">
-                  <div className="flex justify-between text-[11px] font-mono mb-1">
-                    <span className="text-slate-400">Progress</span>
-                    <span className="text-purple-400 font-bold">{topic.progress}%</span>
-                  </div>
-                  <div className="w-full h-1.5 rounded-full bg-space-900 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full"
-                      style={{ width: `${topic.progress}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Personal Notes */}
               {topic.notes && (
-                <div className="p-3 rounded-xl bg-space-950/60 border border-space-border/80 text-xs text-slate-300 mb-4 leading-relaxed">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-purple-400 block mb-1">
-                    Engineering Notes:
-                  </span>
+                <div className="p-3.5 rounded-xl bg-warm-subtle text-xs text-warm-secondary leading-relaxed border border-warm-border">
+                  <span className="font-semibold text-warm-text block mb-0.5">Personal Notes:</span>
                   {topic.notes}
                 </div>
               )}
-            </div>
 
-            {/* Curated Resources */}
-            {topic.resources && topic.resources.length > 0 && (
-              <div className="pt-3 border-t border-space-border/60">
-                <span className="text-[10px] font-mono uppercase text-slate-400 block mb-2">
-                  Learning Resources:
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {topic.resources.map((res, idx) => (
+              {topic.resources && topic.resources.length > 0 && (
+                <div className="pt-2 flex flex-wrap gap-2 text-xs">
+                  {topic.resources.map((res) => (
                     <a
-                      key={idx}
+                      key={res.url}
                       href={res.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-space-900 border border-space-border hover:border-purple-400/50 text-[11px] font-mono text-purple-300 hover:text-purple-200 transition"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-warm-surface border border-warm-border hover:bg-warm-hover text-warm-text transition"
                     >
                       <span>{res.title}</span>
-                      <ExternalLink size={10} />
+                      <ExternalLink size={11} className="text-warm-muted" />
                     </a>
                   ))}
                 </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 2. Want to Learn */}
+      <div className="space-y-4 pt-4">
+        <div className="flex items-center gap-2 pb-2 border-b border-warm-border/60">
+          <span className="w-2.5 h-2.5 rounded-full bg-warm-amber" />
+          <h2 className="text-base font-mono uppercase tracking-wider font-semibold text-warm-text">
+            Want to Learn
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {wantToLearn.map((topic) => (
+            <div key={topic.id} className="apple-card p-5 flex flex-col justify-between">
+              <div>
+                <span className="px-2 py-0.5 rounded-md bg-warm-subtle text-[10px] font-mono font-medium text-warm-muted block mb-2 w-fit">
+                  {topic.category}
+                </span>
+                <h4 className="text-sm font-bold text-warm-text mb-1.5">
+                  {topic.title}
+                </h4>
+                <p className="text-xs text-warm-secondary leading-relaxed mb-3">
+                  {topic.description}
+                </p>
               </div>
-            )}
-          </div>
-        ))}
+
+              <span className="text-[11px] font-mono text-warm-muted">
+                Status: {topic.status}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

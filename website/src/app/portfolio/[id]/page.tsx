@@ -1,169 +1,161 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import SectionHeader from '@/components/layout/SectionHeader';
+import { ArrowLeft, ExternalLink, Github, CheckCircle2, Clock, Calendar, Code2 } from 'lucide-react';
 import { universeStore, DEFAULT_PROJECTS } from '@/lib/db';
 import { Project } from '@/lib/types';
-import { ArrowLeft, ExternalLink, Github, Calendar, Layers, CheckCircle2, Terminal } from 'lucide-react';
 
-export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
+export default function ProjectDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const projectId = params?.id as string;
+
   const [project, setProject] = useState<Project | null>(null);
 
   useEffect(() => {
-    const allProjects = universeStore.get<Project[]>('projects', DEFAULT_PROJECTS);
-    const found = allProjects.find((p) => p.id === resolvedParams.id);
-    setProject(found || null);
-  }, [resolvedParams.id]);
+    const list = universeStore.get<Project[]>('projects', DEFAULT_PROJECTS);
+    const found = list.find((p) => p.id === projectId) || DEFAULT_PROJECTS[0];
+    setProject(found);
+  }, [projectId]);
 
   if (!project) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <h2 className="text-2xl font-bold text-white mb-4">Project Not Found in Sector 02</h2>
-        <Link href="/portfolio" className="text-xs font-mono text-cyan-400 hover:underline">
-          Return to Project Showcase
-        </Link>
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center text-warm-secondary">
+        Loading project details...
       </div>
     );
   }
 
+  const statusBadge =
+    project.status === 'Currently Building'
+      ? 'bg-amber-100 text-amber-800 border-amber-200'
+      : project.status === 'Built'
+      ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+      : 'bg-warm-subtle text-warm-secondary border-warm-border';
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-      <SectionHeader
-        planetName="FORGE"
-        sector="Sector 02: Detailed Architectural Spec"
-        planetColor="#06b6d4"
-        title={project.title}
-        description={project.description}
-      />
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-10">
+      {/* Back button */}
+      <Link
+        href="/portfolio"
+        className="inline-flex items-center gap-1.5 text-xs font-medium text-warm-secondary hover:text-warm-text transition group"
+      >
+        <ArrowLeft size={13} className="group-hover:-translate-x-1 transition-transform" />
+        <span>Back to all projects</span>
+      </Link>
 
-      {/* Main Cover Banner */}
-      <div className="relative w-full h-72 sm:h-96 rounded-2xl overflow-hidden mb-8 border border-cyan-500/30 shadow-2xl">
-        <img
-          src={project.coverImage}
-          alt={project.title}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-space-950 via-space-950/20 to-transparent" />
-        <div className="absolute bottom-6 left-6 right-6 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-md bg-space-950/90 backdrop-blur-md border border-cyan-400/50 text-xs font-mono text-cyan-300 font-bold">
-              {project.category}
-            </span>
-            <span className="px-3 py-1 rounded-md bg-space-950/90 backdrop-blur-md border border-space-border text-xs font-mono text-slate-300">
-              Status: {project.status}
-            </span>
-          </div>
+      {/* Header Info */}
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium border uppercase tracking-wider ${statusBadge}`}>
+            {project.status}
+          </span>
+          <span className="text-xs font-mono text-warm-muted">
+            {project.category}
+          </span>
+        </div>
 
-          <div className="flex items-center gap-3">
-            {project.githubUrl && (
-              <a
-                href={project.githubUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-space-900/90 backdrop-blur-md border border-space-border hover:border-white text-xs font-mono font-medium text-white transition"
-              >
-                <Github size={14} />
-                <span>Source Code</span>
-              </a>
-            )}
-            {project.liveUrl && (
-              <a
-                href={project.liveUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-xs font-mono font-bold text-white transition shadow-[0_0_15px_rgba(6,182,212,0.4)]"
-              >
-                <ExternalLink size={14} />
-                <span>Launch Live</span>
-              </a>
-            )}
-          </div>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-warm-text">
+          {project.title}
+        </h1>
+
+        <p className="text-base sm:text-lg text-warm-secondary leading-relaxed max-w-2xl">
+          {project.description}
+        </p>
+
+        {/* Action Links */}
+        <div className="flex flex-wrap items-center gap-3 pt-2">
+          {project.liveUrl && (
+            <a
+              href={project.liveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 rounded-xl bg-warm-text hover:bg-black text-white text-xs font-medium flex items-center gap-1.5 transition shadow-apple-sm"
+            >
+              <span>Visit Website</span>
+              <ExternalLink size={13} />
+            </a>
+          )}
+          {project.githubUrl && (
+            <a
+              href={project.githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 rounded-xl bg-warm-surface border border-warm-border text-warm-text hover:bg-warm-hover text-xs font-medium flex items-center gap-1.5 transition"
+            >
+              <Github size={13} />
+              <span>Source Repository</span>
+            </a>
+          )}
         </div>
       </div>
 
-      {/* Details Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-        {/* Left Column: Full Architectural Breakdown */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="glass-panel rounded-2xl p-6 sm:p-8 border border-space-border">
-            <h3 className="text-sm font-mono uppercase tracking-wider text-cyan-400 font-bold mb-4 flex items-center gap-2">
-              <Terminal size={16} />
-              <span>System Overview & Architecture</span>
+      {/* Case Study Detailed Breakdown */}
+      <div className="apple-card p-6 sm:p-8 space-y-8">
+        {/* Why Built & Problem */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h3 className="text-sm font-mono uppercase tracking-wider text-warm-muted mb-2 font-semibold">
+              01. The Problem
             </h3>
-            <p className="text-sm text-slate-300 leading-relaxed mb-6">
-              {project.longDescription || project.description}
+            <p className="text-xs sm:text-sm text-warm-secondary leading-relaxed">
+              {project.problemAddressed ||
+                'Students frequently experience fragmentation across study tools, disconnected communication, and lack of clear academic progress accountability.'}
             </p>
-
-            <h4 className="text-xs font-mono uppercase tracking-wider text-slate-400 font-semibold mb-3">
-              Core Technical Deliverables
-            </h4>
-            <div className="space-y-2.5">
-              {project.technologies.map((tech) => (
-                <div key={tech} className="flex items-center gap-2.5 text-xs text-slate-200">
-                  <CheckCircle2 size={14} className="text-cyan-400 shrink-0" />
-                  <span>Engineered with {tech} for optimal concurrency and spatial rendering.</span>
-                </div>
-              ))}
-            </div>
           </div>
 
-          {/* Screenshots Gallery */}
-          {project.screenshots && project.screenshots.length > 0 && (
-            <div className="glass-panel rounded-2xl p-6 sm:p-8 border border-space-border">
-              <h3 className="text-sm font-mono uppercase tracking-wider text-cyan-400 font-bold mb-4 flex items-center gap-2">
-                <Layers size={16} />
-                <span>Interface Visuals</span>
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {project.screenshots.map((shot, idx) => (
-                  <div key={idx} className="rounded-xl overflow-hidden border border-space-border h-48">
-                    <img src={shot} alt="Screenshot" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <div>
+            <h3 className="text-sm font-mono uppercase tracking-wider text-warm-muted mb-2 font-semibold">
+              02. The Solution & Vision
+            </h3>
+            <p className="text-xs sm:text-sm text-warm-secondary leading-relaxed">
+              {project.whyBuilt ||
+                'Built to provide a dedicated, distraction-free environment tailored specifically for students in Nepal.'}
+            </p>
+          </div>
         </div>
 
-        {/* Right Column: Spec Metadata */}
-        <div className="space-y-6">
-          <div className="glass-panel rounded-2xl p-6 border border-space-border space-y-4">
-            <h4 className="text-xs font-mono uppercase tracking-wider text-cyan-400 font-bold">
-              Project Parameters
-            </h4>
-
-            <div className="space-y-3 text-xs">
-              <div>
-                <span className="text-slate-400 block mb-1">Development Period</span>
-                <div className="flex items-center gap-1.5 text-slate-200 font-mono">
-                  <Calendar size={13} className="text-cyan-400" />
-                  <span>{project.startDate || '2025'} — {project.completionDate || 'Ongoing'}</span>
-                </div>
-              </div>
-
-              <div>
-                <span className="text-slate-400 block mb-1">Technology Stack</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {project.technologies.map((t) => (
-                    <span key={t} className="px-2 py-0.5 rounded bg-space-900 border border-space-border text-[10px] font-mono text-cyan-300">
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
+        {/* Long Description */}
+        {project.longDescription && (
+          <div className="pt-6 border-t border-warm-border/60">
+            <h3 className="text-sm font-mono uppercase tracking-wider text-warm-muted mb-2 font-semibold">
+              03. Architecture & Overview
+            </h3>
+            <p className="text-xs sm:text-sm text-warm-secondary leading-relaxed">
+              {project.longDescription}
+            </p>
           </div>
+        )}
 
-          <Link
-            href="/portfolio"
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-space-900 border border-space-border hover:border-cyan-400/50 text-xs font-mono text-slate-300 transition"
-          >
-            <ArrowLeft size={14} />
-            <span>Return to Portfolio Grid</span>
-          </Link>
+        {/* Learnings */}
+        {project.learnings && (
+          <div className="pt-6 border-t border-warm-border/60">
+            <h3 className="text-sm font-mono uppercase tracking-wider text-warm-muted mb-2 font-semibold">
+              04. Key Takeaways & Learnings
+            </h3>
+            <p className="text-xs sm:text-sm text-warm-secondary leading-relaxed">
+              {project.learnings}
+            </p>
+          </div>
+        )}
+
+        {/* Technologies Used */}
+        <div className="pt-6 border-t border-warm-border/60">
+          <h3 className="text-sm font-mono uppercase tracking-wider text-warm-muted mb-3 font-semibold">
+            Technologies & Tools
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {project.technologies.map((tech) => (
+              <span
+                key={tech}
+                className="px-3 py-1.5 rounded-lg bg-warm-subtle text-xs font-mono text-warm-text border border-warm-border"
+              >
+                {tech}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </div>

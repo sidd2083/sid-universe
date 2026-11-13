@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import SectionHeader from '@/components/layout/SectionHeader';
 import { universeStore, DEFAULT_SETTINGS, DEFAULT_TIMELINE } from '@/lib/db';
 import { SiteSettings, TimelineMilestone } from '@/lib/types';
-import { User, Target, Sparkles, Code, Cpu, Shield, Globe, Award, Calendar } from 'lucide-react';
+import { MapPin, Calendar, Heart, Terminal } from 'lucide-react';
 
 export default function AboutPage() {
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
@@ -15,112 +15,89 @@ export default function AboutPage() {
     setTimeline(universeStore.get('timeline', DEFAULT_TIMELINE));
   }, []);
 
-  const skills = [
-    { name: 'Full-Stack Architecture (Next.js, React, Node.js, TypeScript)', level: 95 },
-    { name: '3D Web & Creative Computing (Three.js, WebGL, GLSL)', level: 88 },
-    { name: 'Systems Engineering & Windows Telemetry (Rust, C++, Electron)', level: 82 },
-    { name: 'Cloud Infrastructure & Database Security (Firebase, Cloudflare)', level: 90 },
-    { name: 'AI Workflows & LLM Orchestration (PyTorch, PEFT, LangChain)', level: 85 },
-    { name: 'Low-Level Security & Process Monitoring', level: 78 }
-  ];
-
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-      {/* Section Header with Back to Universe Button */}
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-12">
       <SectionHeader
-        planetName="CHRONICLE"
-        sector="Sector 01: Identity & Origins"
-        planetColor="#6366f1"
+        category="Identity & Background"
         title="About Sid"
-        description="The ancestral origin sphere holding my story, philosophy, background, core skillsets, and milestones."
+        description="A student and builder from Hetauda, Nepal. Exploring computer science, design systems, and building practical things."
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
-        {/* Left Column: Profile Card & Bio */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="glass-panel-glow rounded-2xl p-6 border border-indigo-500/30 text-center">
-            <div className="relative w-36 h-36 mx-auto mb-5 rounded-full overflow-hidden border-2 border-indigo-400 p-1 shadow-[0_0_25px_rgba(99,102,241,0.4)]">
-              <img
-                src={settings.profileImage || DEFAULT_SETTINGS.profileImage}
-                alt="Sid"
-                className="w-full h-full object-cover rounded-full"
-              />
-            </div>
-
-            <h2 className="text-2xl font-black text-white tracking-wide">Sid</h2>
-            <p className="text-xs font-mono text-indigo-300 mt-1 uppercase tracking-widest">
-              Digital Architect & Creative Engineer
-            </p>
-
-            <div className="mt-4 pt-4 border-t border-space-border/60 text-xs text-slate-300 leading-relaxed text-left">
-              {settings.bio || DEFAULT_SETTINGS.bio}
+      {/* Main Story & Philosophy */}
+      <div className="apple-card p-6 sm:p-8 space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-warm-border/60">
+          <div>
+            <h2 className="text-2xl font-bold text-warm-text">Sid</h2>
+            <div className="flex items-center gap-2 text-xs text-warm-muted mt-1">
+              <MapPin size={12} />
+              <span>Hetauda, Bagmati Province, Nepal</span>
             </div>
           </div>
-
-          {/* Core Philosophy & Ambitions */}
-          <div className="glass-panel rounded-2xl p-6 border border-space-border space-y-4">
-            <h3 className="text-sm font-mono uppercase tracking-wider text-indigo-400 font-bold flex items-center gap-2">
-              <Target size={16} />
-              <span>Ambitions & Vision</span>
-            </h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              To bridge the boundary between spatial 3D computing and real-time backend intelligence. Creating software that is not only robust and highly secure, but also deeply atmospheric and rewarding to experience.
-            </p>
-          </div>
+          <span className="px-3 py-1 rounded-full bg-warm-subtle text-xs font-mono text-warm-secondary border border-warm-border">
+            Student & Developer
+          </span>
         </div>
 
-        {/* Right Column: Skills & Milestones */}
-        <div className="lg:col-span-7 space-y-8">
-          {/* Technical Proficiencies */}
-          <div className="glass-panel rounded-2xl p-6 border border-space-border">
-            <h3 className="text-sm font-mono uppercase tracking-wider text-indigo-400 font-bold mb-5 flex items-center gap-2">
-              <Code size={16} />
-              <span>Core Proficiencies</span>
-            </h3>
-            <div className="space-y-4">
-              {skills.map((s) => (
-                <div key={s.name}>
-                  <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-slate-200 font-medium">{s.name}</span>
-                    <span className="font-mono text-indigo-400">{s.level}%</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-space-900 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full"
-                      style={{ width: `${s.level}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
+        <div className="space-y-4 text-sm sm:text-base text-warm-secondary leading-relaxed font-sans">
+          <p>
+            I am a student based in Hetauda, Nepal. I enjoy spending my time writing code, exploring how software works under the hood, and building platforms that can genuinely help students around me.
+          </p>
+          <p>
+            My journey began a few years ago when I wanted to build real things on the web. That curiosity led to creating <strong>GSConfession</strong>, an anonymous community space where students could share their authentic thoughts. Managing server crashes, database performance, and content moderation taught me practical engineering lessons that no textbook ever could.
+          </p>
+          <p>
+            Currently, my main energy is focused on <strong>StudentHub Nepal</strong>, an ambitious platform designed to centralize study rooms, report card tracking, and peer streaks for students across Nepal. When I am not working on that, I spend my afternoons learning Python, diving into NumPy and Pandas, playing GTA V or Minecraft with close friends, and exploring minimalist design.
+          </p>
+        </div>
+      </div>
+
+      {/* Personal Philosophy & Approach */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="apple-card p-6">
+          <h3 className="text-base font-bold text-warm-text mb-2">
+            My Approach to Building
+          </h3>
+          <p className="text-xs sm:text-sm text-warm-secondary leading-relaxed">
+            I value clarity over unnecessary complexity. Every feature should have a purpose. Beautiful typography, natural spacing, and rock-solid backend reliability matter far more to me than flashy decorative trends.
+          </p>
+        </div>
+
+        <div className="apple-card p-6">
+          <h3 className="text-base font-bold text-warm-text mb-2">
+            Curiosity & Consistency
+          </h3>
+          <p className="text-xs sm:text-sm text-warm-secondary leading-relaxed">
+            I don't pretend to know everything or have perfect consistency. I have half-finished courses and an endless queue of things I want to master. What keeps me going is building actual software that people can use.
+          </p>
+        </div>
+      </div>
+
+      {/* Chronological Timeline */}
+      <div className="apple-card p-6 sm:p-8">
+        <div className="flex items-center gap-2 mb-6">
+          <Calendar size={18} className="text-warm-secondary" />
+          <h3 className="text-lg font-bold text-warm-text">
+            Milestones & Journey
+          </h3>
+        </div>
+
+        <div className="relative pl-6 space-y-8 border-l border-warm-border">
+          {timeline.map((item) => (
+            <div key={item.id} className="relative">
+              {/* Dot */}
+              <div className="absolute -left-[31px] top-1 w-3.5 h-3.5 rounded-full bg-warm-surface border-2 border-warm-text" />
+
+              <span className="text-xs font-mono font-semibold text-warm-muted">
+                {item.year}
+              </span>
+              <h4 className="text-base font-bold text-warm-text mt-1 mb-1">
+                {item.title}
+              </h4>
+              <p className="text-xs sm:text-sm text-warm-secondary leading-relaxed">
+                {item.description}
+              </p>
             </div>
-          </div>
-
-          {/* Interactive Timeline */}
-          <div className="glass-panel rounded-2xl p-6 border border-space-border">
-            <h3 className="text-sm font-mono uppercase tracking-wider text-indigo-400 font-bold mb-6 flex items-center gap-2">
-              <Calendar size={16} />
-              <span>Chronological Milestones</span>
-            </h3>
-
-            <div className="relative pl-6 space-y-8 border-l border-indigo-500/30">
-              {timeline.map((item) => (
-                <div key={item.id} className="relative group">
-                  {/* Timeline Node Orb */}
-                  <div className="absolute -left-[31px] top-0 w-3.5 h-3.5 rounded-full bg-indigo-500 border-2 border-space-950 shadow-[0_0_10px_#6366f1] group-hover:scale-125 transition-transform" />
-
-                  <span className="text-xs font-mono text-indigo-400 font-bold px-2 py-0.5 rounded bg-indigo-950/60 border border-indigo-800/40">
-                    {item.year}
-                  </span>
-                  <h4 className="text-base font-bold text-white mt-2 mb-1">
-                    {item.title}
-                  </h4>
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    {item.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>

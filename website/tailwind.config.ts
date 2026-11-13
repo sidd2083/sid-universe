@@ -9,46 +9,62 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        space: {
-          950: "#020408",
-          900: "#050814",
-          850: "#080e22",
-          800: "#0d1636",
-          700: "#15224f",
-          600: "#1e316d",
-          border: "#1c2a52",
+        warm: {
+          bg: "#FAF9F6",
+          surface: "#FFFFFF",
+          subtle: "#F4F3EE",
+          hover: "#EFECE5",
+          border: "#E8E6DF",
+          borderStrong: "#D5D2C8",
+          text: "#151413",
+          secondary: "#686660",
+          muted: "#96948D",
+          amber: "#D97706",
+          amberSoft: "#FEF3C7",
+          lampGlow: "#FDE68A",
         },
-        sun: {
-          glow: "#ffaa00",
-          core: "#fff4d0",
-          corona: "#ff7700",
-        },
-        planet: {
-          about: "#6366f1", // Indigo / Cosmic Genesis
-          portfolio: "#06b6d4", // Cyan / Forge of Works
-          learning: "#8b5cf6", // Purple-Violet / Academy of Knowledge
-          gaming: "#10b981", // Emerald / Arena of Play
-          music: "#ec4899", // Rose-Pink / Melody Resonance
-          messages: "#0284c7", // Sky-Blue / Whisper Frequency
-          watchlist: "#f59e0b", // Amber-Orange / Observatory
+        night: {
+          bg: "#1C1B18",
+          surface: "#24231F",
+          subtle: "#2C2A25",
+          hover: "#34322C",
+          border: "#383630",
+          text: "#EDEBE6",
+          secondary: "#A3A096",
+          muted: "#76736A",
         }
       },
       fontFamily: {
-        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+        sans: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "'SF Pro Text'",
+          "'SF Pro Display'",
+          "'Geist'",
+          "'Inter'",
+          "system-ui",
+          "sans-serif"
+        ],
+        serif: [
+          "'Newsreader'",
+          "'Playfair Display'",
+          "Georgia",
+          "serif"
+        ],
+        mono: [
+          "'SF Mono'",
+          "'Geist Mono'",
+          "'JetBrains Mono'",
+          "ui-monospace",
+          "monospace"
+        ],
       },
-      keyframes: {
-        pulseSlow: {
-          '0%, 100%': { opacity: '0.8', transform: 'scale(1)' },
-          '50%': { opacity: '1', transform: 'scale(1.05)' },
-        },
-        twinkle: {
-          '0%, 100%': { opacity: '0.2' },
-          '50%': { opacity: '0.9' },
-        }
-      },
-      animation: {
-        'pulse-slow': 'pulseSlow 4s ease-in-out infinite',
-        'twinkle': 'twinkle 3s ease-in-out infinite',
+      boxShadow: {
+        'apple-sm': '0 1px 2px rgba(0, 0, 0, 0.04)',
+        'apple': '0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)',
+        'apple-md': '0 4px 16px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03)',
+        'apple-lg': '0 12px 32px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)',
+        'lamp': '0 0 45px rgba(245, 158, 11, 0.15)',
       }
     },
   },

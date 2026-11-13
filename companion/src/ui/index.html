@@ -3,138 +3,164 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SID COMPANION — Desktop Telemetry</title>
+  <title>Sid Companion</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="window-container">
-    <!-- Header -->
-    <header class="header">
-      <div class="brand">
-        <div class="pulsing-orb"></div>
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="brand-group">
+        <div class="status-indicator" id="statusIndicator"></div>
         <div>
-          <h1>SID COMPANION</h1>
-          <p class="subtitle">Windows Background Telemetry Engine</p>
+          <h1 class="app-title">Sid Companion</h1>
+          <p class="app-subtitle" id="statusSubtitle">Ready & synchronizing</p>
         </div>
       </div>
-      <div class="connection-badge" id="connectionBadge">
-        <span class="status-dot"></span>
-        <span id="connectionText">Connecting...</span>
+
+      <div class="header-actions">
+        <button id="btnManualSync" class="btn btn-secondary">Sync Now</button>
       </div>
     </header>
 
-    <!-- Main Content Grid -->
-    <div class="dashboard-grid">
-      <!-- Left Column: Live Detection & Privacy -->
-      <section class="card">
-        <h2>Live Detection Status</h2>
-        
-        <div class="status-item">
-          <div class="status-label">
-            <span class="icon">🎮</span>
-            <div>
-              <strong>Active Game</strong>
-              <div class="subtext" id="detectedGameText">Scanning for games...</div>
-            </div>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="toggleShareGaming" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
+    <!-- Master Switch Card -->
+    <div class="card master-card">
+      <div class="master-info">
+        <span class="label-uppercase">Master Control</span>
+        <h2 class="master-title">Share Activity</h2>
+        <p class="master-desc">
+          When active, approved foreground applications and music are synchronized to your website.
+        </p>
+      </div>
 
-        <div class="status-item">
-          <div class="status-label">
-            <span class="icon">🎵</span>
-            <div>
-              <strong>Now Playing</strong>
-              <div class="subtext" id="detectedMusicText">Waiting for Spotify/YouTube...</div>
-            </div>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="toggleShareMusic" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div class="status-item">
-          <div class="status-label">
-            <span class="icon">💻</span>
-            <div>
-              <strong>Coding Project</strong>
-              <div class="subtext" id="detectedCodingText">Scanning VS Code...</div>
-            </div>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="toggleShareCoding" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div class="status-item">
-          <div class="status-label">
-            <span class="icon">💬</span>
-            <div>
-              <strong>Custom Status</strong>
-              <input type="text" id="customStatusInput" class="compact-input" placeholder="What are you doing?">
-            </div>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="toggleShareStatus" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div class="action-buttons">
-          <button id="btnScanNow" class="btn btn-secondary">⚡ Scan & Sync Now</button>
-          <button id="btnStealth" class="btn btn-outline">👻 Stealth Mode</button>
-        </div>
-      </section>
-
-      <!-- Right Column: Settings & Connectivity -->
-      <section class="card">
-        <h2>Universe Connectivity</h2>
-
-        <div class="form-group">
-          <label for="apiUrl">Backend API URL</label>
-          <input type="text" id="apiUrl" placeholder="http://localhost:3000">
-          <span class="hint">The production domain or local dev URL of SID UNIVERSE.</span>
-        </div>
-
-        <div class="form-group">
-          <label for="apiToken">Secret Telemetry Token</label>
-          <input type="password" id="apiToken" placeholder="Paste token from Admin panel">
-          <span class="hint">Generate or copy this token from the Admin Dashboard Integrations tab.</span>
-        </div>
-
-        <div class="checkbox-group">
-          <label class="checkbox-label">
-            <input type="checkbox" id="toggleAutoLaunch">
-            <span>Launch automatically with Windows</span>
-          </label>
-        </div>
-
-        <button id="btnSaveConfig" class="btn btn-primary full-width">Save Settings</button>
-
-        <!-- Sync Health / Telemetry Log -->
-        <div class="telemetry-info">
-          <div class="info-row">
-            <span>Last Synced:</span>
-            <strong id="lastSyncTime">Never</strong>
-          </div>
-          <div class="info-row">
-            <span>Heartbeat Interval:</span>
-            <strong>12 seconds</strong>
-          </div>
-          <div class="info-row">
-            <span>Browser Ext Port:</span>
-            <strong class="port-tag">127.0.0.1:49152</strong>
-          </div>
-        </div>
-      </section>
+      <label class="switch switch-large">
+        <input type="checkbox" id="masterShareToggle" checked>
+        <span class="slider"></span>
+      </label>
     </div>
 
-    <!-- Notification / Toast Bar -->
+    <!-- Live Telemetry Card -->
+    <div class="card">
+      <h3 class="section-title">Detected Foreground Activity</h3>
+
+      <div class="telemetry-grid">
+        <div class="telemetry-item">
+          <span class="telemetry-label">Current Application</span>
+          <div class="telemetry-value" id="currentAppVal">—</div>
+        </div>
+
+        <div class="telemetry-item">
+          <span class="telemetry-label">Active Game</span>
+          <div class="telemetry-value" id="currentGameVal">None detected</div>
+        </div>
+
+        <div class="telemetry-item">
+          <span class="telemetry-label">Now Playing</span>
+          <div class="telemetry-value" id="currentMusicVal">Idle</div>
+        </div>
+
+        <div class="telemetry-item">
+          <span class="telemetry-label">Coding / Project</span>
+          <div class="telemetry-value" id="currentCodingVal">Idle</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Sharing Toggles -->
+    <div class="card">
+      <h3 class="section-title">Sharing Categories</h3>
+
+      <div class="toggle-list">
+        <div class="toggle-row">
+          <div>
+            <strong>Games & Sessions</strong>
+            <p class="toggle-desc">GTA V, Minecraft, Human: Fall Flat, Counter-Strike 2</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="shareGamingToggle" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <strong>Music & Audio</strong>
+            <p class="toggle-desc">Spotify desktop and YouTube music playback</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="shareMusicToggle" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <strong>Coding & Creative</strong>
+            <p class="toggle-desc">Visual Studio Code, Blender, and Photoshop</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="shareCodingToggle" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <strong>Browser Metadata</strong>
+            <p class="toggle-desc">Active YouTube video title via Chrome Extension</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="shareBrowserToggle" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual Status Override -->
+    <div class="card">
+      <h3 class="section-title">Manual Status Override</h3>
+      <div class="input-row">
+        <input
+          type="text"
+          id="customStatusInput"
+          class="text-input"
+          placeholder="e.g. Building StudentHub Nepal & learning Python"
+        >
+        <button id="btnSaveStatus" class="btn btn-primary">Save Status</button>
+      </div>
+    </div>
+
+    <!-- Diagnostic Details Drawer (collapsible) -->
+    <details class="diagnostic-drawer">
+      <summary>Settings & Diagnostic Details</summary>
+      <div class="diagnostic-content">
+        <div class="field-group">
+          <label for="apiUrl">Website API Endpoint</label>
+          <input type="text" id="apiUrl" class="text-input" placeholder="http://localhost:3000">
+        </div>
+
+        <div class="field-group">
+          <label for="apiToken">Secret Telemetry Token</label>
+          <input type="password" id="apiToken" class="text-input" placeholder="Secret Token">
+        </div>
+
+        <div class="checkbox-row">
+          <label>
+            <input type="checkbox" id="autoLaunchToggle">
+            <span>Launch automatically on Windows startup</span>
+          </label>
+        </div>
+
+        <button id="btnSaveConfig" class="btn btn-secondary full-width mt-2">Save Connection Settings</button>
+
+        <div class="diagnostic-meta">
+          <span>Extension Port: 127.0.0.1:49152</span>
+          <span id="lastSyncLabel">Last sync: Just now</span>
+        </div>
+      </div>
+    </details>
+
     <div id="toast" class="toast hidden"></div>
   </div>
 

@@ -2,49 +2,42 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { INITIAL_PLANETS } from '@/lib/planetsData';
-import { Download, Sparkles, Compass } from 'lucide-react';
+import { MapPin } from 'lucide-react';
+import { DEFAULT_SETTINGS } from '@/lib/db';
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="w-full border-t border-space-border/50 bg-space-950/80 backdrop-blur-md py-8 px-4 sm:px-6 mt-16 text-xs text-slate-400">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-        {/* Brand & Coordinates */}
-        <div className="flex flex-col items-center md:items-start gap-1">
-          <div className="text-sm font-semibold text-white tracking-wider flex items-center gap-2">
-            SID UNIVERSE
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-            <span className="text-[10px] font-mono text-slate-400">COORDINATES [27.7172° N, 85.3240° E]</span>
+    <footer className="w-full border-t border-warm-border/70 bg-warm-bg mt-24 py-16 transition-colors duration-500">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-12">
+        {/* Philosophical Quote */}
+        <div className="max-w-2xl">
+          <blockquote className="font-serif italic text-lg sm:text-xl text-warm-text leading-relaxed">
+            "{DEFAULT_SETTINGS.footerQuote.quote}"
+          </blockquote>
+          <cite className="block text-xs font-mono text-warm-muted uppercase tracking-wider not-italic mt-2">
+            — {DEFAULT_SETTINGS.footerQuote.author}
+          </cite>
+        </div>
+
+        {/* Divider */}
+        <div className="w-full h-px bg-warm-border/60" />
+
+        {/* Bottom Metadata */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-warm-secondary">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-warm-text tracking-tight">SID</span>
+            <span className="text-warm-muted">•</span>
+            <span className="flex items-center gap-1">
+              <MapPin size={11} className="text-warm-muted" />
+              <span>Hetauda, Nepal</span>
+            </span>
           </div>
-          <p className="text-slate-500 text-[11px]">
-            Designed & engineered as an interactive digital universe. Powered by Three.js & Firebase.
-          </p>
-        </div>
 
-        {/* Quick Planetary Teleport */}
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          {INITIAL_PLANETS.map((planet) => (
-            <Link
-              key={planet.id}
-              href={planet.path}
-              className="px-2.5 py-1 rounded bg-space-900 border border-space-border hover:border-cyan-500/50 hover:text-cyan-300 font-mono text-[11px] transition"
-            >
-              {planet.name}
-            </Link>
-          ))}
-        </div>
-
-        {/* Companion Download CTA */}
-        <div className="flex items-center gap-3">
-          <a
-            href="https://github.com/sid/sid-universe/releases"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-950/40 border border-cyan-800/60 text-cyan-300 hover:bg-cyan-900/40 transition text-[11px] font-medium"
-          >
-            <Download size={13} />
-            <span>Sid Companion (.exe)</span>
-          </a>
+          <div className="flex items-center gap-4 text-warm-muted">
+            <span>© {currentYear} Sid. All personal rights reserved.</span>
+          </div>
         </div>
       </div>
     </footer>

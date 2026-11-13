@@ -1,6 +1,4 @@
-import { INITIAL_PLANETS } from './planetsData';
 import {
-  PlanetConfig,
   Project,
   LearningTopic,
   Game,
@@ -11,223 +9,314 @@ import {
   PublishedQA,
   PublicActivity,
   SiteSettings,
-  TimelineMilestone
+  TimelineMilestone,
+  GreetingLanguage,
+  CurrentProjectHighlight
 } from './types';
 import { listenCollection, listenDocument, saveDocument } from './firestoreService';
 
-// Default initial data for Sid's Universe
+export const DEFAULT_GREETINGS: GreetingLanguage[] = [
+  { id: 'gr-1', language: 'Nepali', greeting: 'Namaste', pronunciation: 'नमस्ते', enabled: true },
+  { id: 'gr-2', language: 'English', greeting: 'Hello', pronunciation: 'Hello', enabled: true },
+  { id: 'gr-3', language: 'French', greeting: 'Bonjour', pronunciation: 'bon-ZHOOR', enabled: true },
+  { id: 'gr-4', language: 'Spanish', greeting: 'Hola', pronunciation: 'OH-lah', enabled: true },
+  { id: 'gr-5', language: 'Italian', greeting: 'Ciao', pronunciation: 'CHOW', enabled: true },
+  { id: 'gr-6', language: 'German', greeting: 'Guten Tag', pronunciation: 'GOO-ten TAHK', enabled: true },
+  { id: 'gr-7', language: 'Japanese', greeting: 'こんにちは', pronunciation: 'Konnichiwa', enabled: true },
+  { id: 'gr-8', language: 'Korean', greeting: '안녕하세요', pronunciation: 'Annyeonghaseyo', enabled: true },
+  { id: 'gr-9', language: 'Chinese', greeting: '你好', pronunciation: 'Nǐ hǎo', enabled: true },
+  { id: 'gr-10', language: 'Arabic', greeting: 'مرحباً', pronunciation: 'Marhaban', enabled: true },
+  { id: 'gr-11', language: 'Russian', greeting: 'Привет', pronunciation: 'Privet', enabled: true },
+  { id: 'gr-12', language: 'Portuguese', greeting: 'Olá', pronunciation: 'OH-lah', enabled: true }
+];
+
+export const DEFAULT_CURRENT_PROJECT: CurrentProjectHighlight = {
+  name: "StudentHub Nepal",
+  description: "A centralized platform designed for students in Nepal featuring collaborative study Rooms, report card analytics, progress tracking, gamification, and academic streaks.",
+  status: "Currently Building",
+  link: "https://studenthubnp.com",
+  imageUrl: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80",
+  technologies: ["Next.js", "TypeScript", "Tailwind CSS", "Firebase", "PostgreSQL"],
+  updatedAt: new Date().toISOString()
+};
+
 export const DEFAULT_SETTINGS: SiteSettings = {
   siteTitle: "SID UNIVERSE",
-  tagline: "Builder, Explorer & Creator of Worlds",
-  bio: "Hey, I'm Sid — an engineer, creative developer, and digital explorer building next-generation web architectures, AI workflows, and immersive digital worlds. Welcome to my personal cosmos.",
+  tagline: "Exploring technology, design, and ideas from Hetauda, Nepal.",
+  bio: "Hey, I'm Sid — an independent developer and student from Hetauda, Nepal. I enjoy building thoughtful software, experimenting with Python and full-stack systems, playing games with friends, and learning how things work from the ground up.",
   profileImage: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
   nepalTimezone: "Asia/Kathmandu",
+  locationCity: "Hetauda, Nepal",
+  clockFormat: "12h",
+  greetings: DEFAULT_GREETINGS,
+  greetingIntervalMs: 3200,
+  greetingPaused: false,
+  currentProject: DEFAULT_CURRENT_PROJECT,
+  footerQuote: {
+    quote: "When something is important enough, you do it even if the odds are not in your favor.",
+    author: "Elon Musk"
+  },
   socialLinks: {
     snapchat: "https://snapchat.com/add/sid",
     discord: "https://discord.com/users/sid",
     steam: "https://steamcommunity.com/id/sid",
     youtube: "https://youtube.com/@sid",
     facebook: "https://facebook.com/sid",
-    github: "https://github.com/sid",
+    github: "https://github.com/sidd2083"
   },
   companionToken: "sid_universe_secret_token_demo_2026",
-  audioAmbientEnabled: true
+  audioAmbientEnabled: false
 };
 
 export const DEFAULT_PROJECTS: Project[] = [
   {
     id: 'proj-1',
-    title: 'Aether OS — Spatial Desktop Environment',
-    description: 'A WebGL-accelerated 3D spatial computing environment running native web microfrontends inside an infinite canvas workspace.',
-    longDescription: 'Aether OS is an exploration into the convergence of 3D spatial interfaces and standard productivity workflows. Built with Three.js, React, and WebAssembly, it enables running multiple sandbox windows, code editors, and media players in full 3D space.',
-    category: '3D & Creative',
-    coverImage: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
+    title: 'StudentHub Nepal',
+    description: 'A platform designed for students in Nepal with study Rooms, report cards, progress tracking, gamification, leaderboards, and streaks.',
+    longDescription: 'StudentHub Nepal is built to solve the fragmentation students face across schools and colleges in Nepal. It combines collaborative study rooms, automatic report card generation, subject-by-subject streak tracking, and interactive peer challenges.',
+    whyBuilt: 'During my studies, I noticed students lacked a dedicated, distraction-free environment to track syllabus milestones and study with peers in real time.',
+    problemAddressed: 'Provides Nepali students with structured motivation, peer accountability, and clear academic progression metrics.',
+    learnings: 'Deepened my understanding of real-time state synchronization, gamification psychology, responsive mobile layout design, and relational schema management.',
+    category: 'Student Platform',
+    coverImage: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80',
     screenshots: [
-      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80'
+      'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=800&q=80'
     ],
-    technologies: ['React', 'Three.js', 'TypeScript', 'Web Workers', 'Tailwind CSS'],
-    status: 'Completed',
-    startDate: '2025-06-01',
-    completionDate: '2026-02-15',
-    liveUrl: 'https://github.com/sid/aether-os',
-    githubUrl: 'https://github.com/sid/aether-os',
+    technologies: ['Next.js', 'TypeScript', 'Tailwind CSS', 'Firebase', 'PostgreSQL'],
+    status: 'Currently Building',
+    startDate: '2025-10-01',
+    liveUrl: 'https://studenthubnp.com',
+    githubUrl: 'https://github.com/sidd2083/studenthub-nepal',
     featured: true,
     order: 1
   },
   {
     id: 'proj-2',
-    title: 'Neural Sentinel — Threat Intelligence Engine',
-    description: 'Autonomous cybersecurity AI pipeline scanning endpoints for anomalous process injection and binary payload telemetry in real time.',
-    longDescription: 'Engineered for rapid telemetry analysis across distributed Windows and Linux machines. Uses lightweight eBPF probes and a fine-tuned embedding model to classify zero-day behavior patterns.',
-    category: 'AI & ML',
-    coverImage: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80',
+    title: 'GSConfession',
+    description: 'An anonymous social networking and confession platform created for students in Nepal, built using WordPress and BuddyBoss.',
+    longDescription: 'GSConfession was launched as an open social platform where students could freely express thoughts, share honest feedback about student life, and communicate without fear of judgment.',
+    whyBuilt: 'Built to give students an authentic voice and community space during high school and college seasons.',
+    problemAddressed: 'Addressed the absence of open, anonymous student communication channels in our local academic circle.',
+    learnings: 'Taught me server management, PHP architecture, database optimization under unexpected traffic spikes, user moderation challenges, and anti-abuse protocols.',
+    category: 'Student Platform',
+    coverImage: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80',
     screenshots: [
-      'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80'
+      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80'
     ],
-    technologies: ['Python', 'PyTorch', 'Rust', 'Next.js', 'FastAPI'],
-    status: 'Completed',
-    startDate: '2025-09-10',
-    completionDate: '2026-01-20',
-    liveUrl: 'https://github.com/sid/neural-sentinel',
-    githubUrl: 'https://github.com/sid/neural-sentinel',
+    technologies: ['WordPress', 'BuddyBoss', 'PHP', 'MySQL', 'Nginx'],
+    status: 'Built',
+    startDate: '2023-04-15',
+    completionDate: '2024-08-20',
+    liveUrl: 'https://gsconfession.xyz',
     featured: true,
     order: 2
   },
   {
     id: 'proj-3',
-    title: 'Sid Universe & Companion Engine',
-    description: 'An interactive 3D personal universe featuring real-time Windows telemetry synchronization, companion desktop app, and cosmic visual design.',
-    longDescription: 'The current platform you are exploring. Features real-time orbital planetary navigation, background Windows companion client, YouTube integration, and hardened Firebase architecture.',
-    category: 'Full-Stack',
-    coverImage: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=800&q=80',
-    screenshots: [
-      'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=800&q=80'
-    ],
-    technologies: ['Next.js', 'TypeScript', 'Three.js', 'Electron', 'Firebase', 'Tailwind CSS'],
-    status: 'Currently Building',
-    startDate: '2026-01-01',
-    liveUrl: 'https://github.com/sid/sid-universe',
-    githubUrl: 'https://github.com/sid/sid-universe',
+    title: 'Autonomous Exam & Course Assistant',
+    description: 'An upcoming AI-powered revision tutor tailored to the Nepali curriculum with automated practice papers and syllabus summarization.',
+    longDescription: 'A planned lightweight local AI tool that parses curriculum PDFs and generates spaced repetition flashcards and practice test exams.',
+    whyBuilt: 'Nepali curriculum students often spend hours searching for old question solutions and chapter summaries.',
+    problemAddressed: 'Bridges access to intelligent revision assistants without requiring expensive subscriptions.',
+    learnings: 'Currently exploring RAG (Retrieval-Augmented Generation) architectures, vector embeddings, and local quantized models.',
+    category: 'AI & ML',
+    coverImage: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80',
+    technologies: ['Python', 'FastAPI', 'Llama 3', 'LangChain', 'React'],
+    status: 'Want to Build',
+    startDate: '2026-06-01',
     featured: true,
     order: 3
-  },
-  {
-    id: 'proj-4',
-    title: 'VoxelForge — Procedural Game Engine',
-    description: 'Experimental voxel terrain generator and physics sandbox built in C++ and Vulkan with real-time ray-traced lighting.',
-    longDescription: 'Investigating sparse voxel octrees (SVO) and compute-shader ray tracing for infinite destructible worlds.',
-    category: '3D & Creative',
-    coverImage: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80',
-    technologies: ['C++', 'Vulkan', 'GLSL', 'CMake'],
-    status: 'Planned Idea',
-    startDate: '2026-06-01',
-    githubUrl: 'https://github.com/sid/voxelforge',
-    featured: false,
-    order: 4
   }
 ];
 
 export const DEFAULT_LEARNING: LearningTopic[] = [
+  // 1. Currently Learning
   {
     id: 'learn-1',
-    title: 'Advanced Shader Programming & Raymarching',
-    category: '3D & Blender',
-    description: 'Mastering GLSL fragment shaders, Signed Distance Functions (SDF), and raymarching for real-time procedural volumetrics in Three.js.',
-    notes: 'Focusing on Inigo Quilez distance functions and GPU performance optimization on mobile hardware.',
+    title: 'Python Core & Scripting',
+    categoryType: 'currently-learning',
+    category: 'Programming',
+    description: 'Mastering idiomatic Python, object-oriented concepts, generators, decorators, and system automation scripts.',
+    notes: 'Working through practical data pipeline exercises and building CLI utilities for daily workflows.',
     resources: [
-      { title: 'The Book of Shaders', url: 'https://thebookofshaders.com' },
-      { title: 'Inigo Quilez Articles', url: 'https://iquilezles.org' }
+      { title: 'Python Official Documentation', url: 'https://docs.python.org/3/' },
+      { title: 'Automate the Boring Stuff with Python', url: 'https://automatetheboringstuff.com/' }
     ],
-    startDate: '2026-01-10',
+    startDate: '2025-11-01',
     status: 'In Progress',
-    progress: 72,
+    progress: 75,
     featured: true,
     order: 1
   },
   {
     id: 'learn-2',
-    title: 'Large Language Model Fine-Tuning & Quantization',
-    category: 'AI & ML',
-    description: 'Fine-tuning open-weights models (Llama 3, Mistral) using LoRA/QLoRA on custom datasets, deploying with vLLM and TensorRT-LLM.',
-    notes: 'Benchmarking latency reduction and memory savings with 4-bit AWQ and GGUF quantization formats.',
+    title: 'NumPy & Numerical Computing',
+    categoryType: 'currently-learning',
+    category: 'Data Science',
+    description: 'Multidimensional array manipulation, vectorization, linear algebra routines, and high-performance computation in memory.',
+    notes: 'Practicing broadcasting rules and replacing slow for-loops with vectorized mathematical operations.',
     resources: [
-      { title: 'Hugging Face PEFT Documentation', url: 'https://huggingface.co/docs/peft' }
+      { title: 'NumPy User Guide', url: 'https://numpy.org/doc/stable/' }
     ],
-    startDate: '2025-11-05',
+    startDate: '2026-01-15',
     status: 'In Progress',
-    progress: 85,
+    progress: 60,
     featured: true,
     order: 2
   },
   {
     id: 'learn-3',
-    title: 'Windows Kernel Internals & Driver Development',
-    category: 'Cybersecurity',
-    description: 'Understanding Windows memory management, IRP handling, and minifilter driver architecture for low-level process instrumentation.',
-    notes: 'Working through Windows Internals (7th Edition) and setting up dual-machine kernel debugging with WinDbg.',
+    title: 'Pandas Data Wrangling',
+    categoryType: 'currently-learning',
+    category: 'Data Science',
+    description: 'DataFrames, Series, time series analysis, aggregating, handling missing data, and cleaning raw datasets.',
+    notes: 'Analyzing real-world CSV datasets and mastering groupby aggregations and data reshaping.',
     resources: [
-      { title: 'Microsoft Driver Development Guide', url: 'https://learn.microsoft.com/windows-hardware/drivers/' }
+      { title: '10 Minutes to Pandas', url: 'https://pandas.pydata.org/docs/user_guide/10min.html' }
     ],
     startDate: '2026-02-01',
     status: 'In Progress',
-    progress: 45,
+    progress: 55,
     featured: true,
     order: 3
   },
   {
     id: 'learn-4',
-    title: 'Distributed Systems & Raft Consensus',
-    category: 'Programming',
-    description: 'Implementing distributed key-value stores with consensus algorithms in Go.',
-    notes: 'Completed leader election, log replication, and snapshotting modules.',
+    title: 'Full-Stack Web Architecture',
+    categoryType: 'currently-learning',
+    category: 'Web Development',
+    description: 'Modern Next.js App Router, React Server Components, TypeScript type-safety, Tailwind CSS, and cloud databases.',
+    notes: 'Refining architecture patterns on StudentHub Nepal and optimizing production build performance.',
     resources: [
-      { title: 'Raft Paper (Ongaro & Ousterhout)', url: 'https://raft.github.io' }
+      { title: 'Next.js Documentation', url: 'https://nextjs.org/docs' }
     ],
-    startDate: '2025-08-15',
-    status: 'Mastered',
-    progress: 100,
-    featured: false,
+    startDate: '2024-06-01',
+    status: 'In Progress',
+    progress: 88,
+    featured: true,
     order: 4
+  },
+  {
+    id: 'learn-5',
+    title: 'Blender 3D Modeling & Lighting',
+    categoryType: 'currently-learning',
+    category: '3D & Blender',
+    description: 'Hard-surface 3D modeling, topology, UV unwrapping, Cycles and Eevee lighting, and material shaders.',
+    notes: 'Practicing low-poly asset creation and clean studio lighting setups.',
+    resources: [
+      { title: 'Blender Fundamentals', url: 'https://www.blender.org/' }
+    ],
+    startDate: '2025-08-10',
+    status: 'In Progress',
+    progress: 45,
+    featured: true,
+    order: 5
+  },
+  {
+    id: 'learn-6',
+    title: 'Adobe Photoshop & Graphic Design',
+    categoryType: 'currently-learning',
+    category: 'Creative Tools',
+    description: 'UI asset composition, photo retouching, poster design, typography hierarchy, and thumbnail creation.',
+    notes: 'Creating custom banner designs and exploring minimal editorial layouts.',
+    resources: [
+      { title: 'Adobe Creative Tutorials', url: 'https://helpx.adobe.com/photoshop/tutorials.html' }
+    ],
+    startDate: '2024-09-01',
+    status: 'In Progress',
+    progress: 70,
+    featured: true,
+    order: 6
+  },
+
+  // 2. Want to Learn
+  {
+    id: 'learn-7',
+    title: 'Artificial Intelligence & Machine Learning',
+    categoryType: 'want-to-learn',
+    category: 'AI & ML',
+    description: 'Neural networks from scratch, backpropagation, gradient descent, PyTorch foundations, and fine-tuning open-weights models.',
+    notes: 'Aiming to build custom classification models and understand the mathematical foundation behind attention mechanisms.',
+    resources: [
+      { title: 'Fast.ai Practical Deep Learning for Coders', url: 'https://course.fast.ai/' }
+    ],
+    status: 'Exploring',
+    featured: true,
+    order: 7
+  },
+  {
+    id: 'learn-8',
+    title: 'Large-Scale Distributed Systems & Rust',
+    categoryType: 'want-to-learn',
+    category: 'Systems',
+    description: 'Memory safety without garbage collection, concurrency primitives, high-throughput microservices, and distributed consensus.',
+    notes: 'Want to read The Rust Book and implement a high-speed telemetry server.',
+    resources: [
+      { title: 'The Rust Programming Language', url: 'https://doc.rust-lang.org/book/' }
+    ],
+    status: 'Queued',
+    featured: true,
+    order: 8
+  },
+  {
+    id: 'learn-9',
+    title: 'Advanced Creative Shader Programming',
+    categoryType: 'want-to-learn',
+    category: '3D & Blender',
+    description: 'GLSL fragment shaders, Signed Distance Functions, procedural noise, and hardware-accelerated creative visuals.',
+    notes: 'Want to study Inigo Quilez tutorials on procedural graphics.',
+    resources: [
+      { title: 'The Book of Shaders', url: 'https://thebookofshaders.com' }
+    ],
+    status: 'Queued',
+    featured: true,
+    order: 9
   }
 ];
 
 export const DEFAULT_GAMES: Game[] = [
   {
     id: 'game-1',
-    title: 'Cyberpunk 2077: Phantom Liberty',
+    title: 'Grand Theft Auto V',
     platform: 'PC',
-    genre: 'Open-World Action RPG',
+    genre: 'Open-World Action Adventure',
     coverImage: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80',
-    description: 'A masterpiece of atmospheric world-building and narrative design in the neon dystopia of Night City.',
-    hoursPlayed: 185,
-    achievements: 'Completed all Dogtown gigs, unlocked all endings, level 60 Netrunner build.',
-    memories: 'Driving through Japantown at 2 AM with the body synth radio station playing through pouring rain.',
+    description: 'Endless freedom in Los Santos, completing heists with friends, driving across Blaine County at sunset.',
+    hoursPlayed: 240,
+    achievements: 'Completed all story heists, high-end apartment, custom car garage.',
+    memories: 'Cruising through the city while listening to West Coast Classics on late weekend nights.',
     isFavorite: true,
-    isCurrentlyPlaying: false,
+    isCurrentlyPlaying: true,
     order: 1
   },
   {
     id: 'game-2',
-    title: 'Counter-Strike 2',
-    platform: 'Steam',
-    genre: 'Tactical Competitive FPS',
-    coverImage: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80',
-    description: 'The definitive tactical shooter testing reflex, map control, and team coordination.',
-    hoursPlayed: 640,
-    achievements: 'Premier rating 16,500+, 5k clutch ace on Inferno.',
-    memories: 'Late night competitive sessions with the squad breaking into sudden laugh attacks.',
-    isFavorite: true,
-    isCurrentlyPlaying: true,
-    order: 2
-  },
-  {
-    id: 'game-3',
-    title: 'Elden Ring: Shadow of the Erdtree',
-    platform: 'PC',
-    genre: 'Action RPG / Souls',
-    coverImage: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80',
-    description: 'An unmatched achievement in exploration, combat mastery, and visual grandeur.',
-    hoursPlayed: 230,
-    achievements: 'Defeated Consort Radahn, collected all Scadutree fragments, platinum trophy.',
-    memories: 'Finally conquering Malenia after three intense evenings of dodging Waterfowl Dance.',
-    isFavorite: true,
-    isCurrentlyPlaying: false,
-    order: 3
-  },
-  {
-    id: 'game-4',
     title: 'Minecraft',
     platform: 'Cross-Platform',
     genre: 'Sandbox / Survival',
     coverImage: 'https://images.unsplash.com/photo-1627856013091-fed6e4e30025?auto=format&fit=crop&w=600&q=80',
-    description: 'The eternal canvas of creativity, redstone engineering, and multiplayer survival adventures.',
-    hoursPlayed: 1200,
-    achievements: 'Automated mega iron and gold farms, nether hub railway network.',
-    memories: 'Building our first survival castle with friends back in high school.',
+    description: 'The timeless canvas of building, survival servers with friends, redstone experiments, and exploration.',
+    hoursPlayed: 1100,
+    achievements: 'Defeated Ender Dragon in survival, automated iron farm, nether transit line.',
+    memories: 'First survival house built on a mountain cliff during high school breaks.',
     isFavorite: true,
     isCurrentlyPlaying: false,
-    order: 4
+    order: 2
+  },
+  {
+    id: 'game-3',
+    title: 'Human: Fall Flat',
+    platform: 'PC',
+    genre: 'Physics Comedy Puzzle',
+    coverImage: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80',
+    description: 'Hilarious ragdoll physics puzzles that turn into uncontrollable laughter sessions in co-op mode.',
+    hoursPlayed: 65,
+    achievements: 'Completed all main campaign dreams, discovered secret shortcuts.',
+    memories: 'Accidentally throwing friends off the catapult instead of the boulder.',
+    isFavorite: true,
+    isCurrentlyPlaying: false,
+    order: 3
   }
 ];
 
@@ -236,7 +325,7 @@ export const DEFAULT_SONGS: Song[] = [
     id: 'song-1',
     title: 'Midnight City',
     artist: 'M83',
-    album: 'Hurry Up, We\'re Dreaming',
+    album: "Hurry Up, We're Dreaming",
     coverArt: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80',
     duration: '4:03',
     spotifyUrl: 'https://open.spotify.com/track/1eyzqe2QqGZUmfcPZtrIyt',
@@ -293,20 +382,20 @@ export const DEFAULT_SONGS: Song[] = [
 export const DEFAULT_PLAYLISTS: Playlist[] = [
   {
     id: 'play-1',
-    title: 'Cosmic Coding Focus',
-    description: 'Deep instrumental synthwave, ambient electronica, and low-tempo beats designed for 4-hour coding flow states.',
+    title: 'Deep Focus Coding',
+    description: 'Calm ambient electronica, low-tempo beats, and minimal acoustic instrumental tracks for flow states.',
     coverImage: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80',
     spotifyUrl: 'https://open.spotify.com/playlist/37i9dQZF1DXdLEN7aqioXM',
-    trackCount: 48,
+    trackCount: 42,
     order: 1
   },
   {
     id: 'play-2',
-    title: 'Night Drive in Kathmandu',
-    description: 'Atmospheric neo-soul, synthpop, and indie electronic melodies for rainy drives across the valley.',
+    title: 'Rain in Hetauda',
+    description: 'Mellow melodies, acoustic guitar, and indie songs for quiet afternoons.',
     coverImage: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80',
     spotifyUrl: 'https://open.spotify.com/playlist/37i9dQZF1DX4t95P99014Q',
-    trackCount: 35,
+    trackCount: 30,
     order: 2
   }
 ];
@@ -314,47 +403,36 @@ export const DEFAULT_PLAYLISTS: Playlist[] = [
 export const DEFAULT_WATCHLIST: WatchlistItem[] = [
   {
     id: 'watch-1',
-    title: 'Building a Fast Voxel Engine in Vulkan',
-    description: 'Comprehensive 4-part series covering GPU memory allocation, compute pipeline optimization, and volumetric raymarching.',
-    thumbnail: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80',
-    sourceUrl: 'https://youtube.com',
-    category: 'YouTube',
-    addedDate: '2026-02-10',
-    status: 'Watching',
+    title: 'CS50: Introduction to Computer Science',
+    description: 'Harvard University computer science course exploring memory, algorithms, data structures, and web technologies.',
+    thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80',
+    sourceUrl: 'https://cs50.harvard.edu/',
+    category: 'Course',
+    addedDate: '2025-10-10',
+    status: 'Completed',
     order: 1
   },
   {
     id: 'watch-2',
-    title: 'CS50: Introduction to Artificial Intelligence with Python',
-    description: 'Harvard University course on graph search algorithms, minimax, reinforcement learning, and neural network foundations.',
-    thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80',
-    sourceUrl: 'https://cs50.harvard.edu/ai',
-    category: 'Course',
-    addedDate: '2025-12-01',
-    status: 'Completed',
+    title: 'Neural Networks: Zero to Hero by Andrej Karpathy',
+    description: 'Deep walkthrough building micrograd and makemore from the ground up in pure Python.',
+    thumbnail: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80',
+    sourceUrl: 'https://youtube.com',
+    category: 'YouTube',
+    addedDate: '2026-01-20',
+    status: 'Watching',
     order: 2
   },
   {
     id: 'watch-3',
-    title: 'The James Webb Space Telescope: Unveiling the Cosmic Dawn',
-    description: 'Deep documentary examining the engineering behind the infrared sunshield and first deep-field exoplanet spectrometry.',
-    thumbnail: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80',
-    sourceUrl: 'https://youtube.com',
-    category: 'Documentary',
-    addedDate: '2026-01-25',
-    status: 'Completed',
-    order: 3
-  },
-  {
-    id: 'watch-4',
-    title: 'Rust for High-Frequency Systems Architecture',
-    description: 'In-depth guide to zero-cost abstractions, lock-free queues, and cache-friendly data structures in systems programming.',
-    thumbnail: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80',
+    title: 'The Principles of Clean Typography & Design Systems',
+    description: 'Deep dive into editorial grid systems, font pairings, visual hierarchy, and baseline alignment.',
+    thumbnail: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=600&q=80',
     sourceUrl: 'https://youtube.com',
     category: 'Tutorial',
-    addedDate: '2026-03-01',
+    addedDate: '2026-02-15',
     status: 'To Watch',
-    order: 4
+    order: 3
   }
 ];
 
@@ -362,26 +440,26 @@ export const DEFAULT_PUBLISHED_QA: PublishedQA[] = [
   {
     id: 'qa-1',
     messageId: 'msg-init-1',
-    question: "What inspired you to build this entire 3D solar system website instead of a normal portfolio?",
-    reply: "I believe standard web pages have become too homogenous and card-heavy. A personal website should feel like entering someone's distinct mental universe. Planetary orbits represent how different passions (code, gaming, music, learning) continually revolve around the central core of who we are.",
+    question: "What made you want to build StudentHub Nepal?",
+    reply: "Growing up studying in Nepal, I saw how much time we lost juggling disparate notes, disconnected group chats, and fragmented exam papers. I wanted to build one clean, quiet space where Nepali students could organize their academic life, track streaks, and learn with peers without social media clutter.",
     publishedAt: "2026-02-14T18:30:00Z",
-    category: "Philosophy"
+    category: "Projects"
   },
   {
     id: 'qa-2',
     messageId: 'msg-init-2',
-    question: "What advice would you give someone who wants to learn creative 3D web development?",
-    reply: "Start with fundamental math (vectors, trigonometry, matrices) and raw Three.js primitives before jumping into heavyweight abstractions. Learn GLSL fragment shaders early — once you understand how to control pixels on the GPU, you have total creative freedom.",
+    question: "How do you manage staying consistent with learning so many different technologies?",
+    reply: "To be honest, consistency is something I constantly wrestle with. I have several half-finished courses and tabs I never close! What helps me is picking one real project (like building a feature for StudentHub or a small Python script) rather than trying to consume endless tutorials passively.",
     publishedAt: "2026-02-28T14:15:00Z",
-    category: "Career"
+    category: "Learning"
   },
   {
     id: 'qa-3',
     messageId: 'msg-init-3',
-    question: "Are you open to collaborating on open-source AI or 3D web experiments?",
-    reply: "Always! Feel free to reach out through Discord, GitHub, or send an anonymous note right here with your project idea or repository link.",
+    question: "What are your favorite games to play when you are not coding?",
+    reply: "GTA V with friends is always a great laugh. Minecraft when I want to relax and build things, and Human: Fall Flat whenever we just need something completely ridiculous.",
     publishedAt: "2026-03-05T09:40:00Z",
-    category: "Collaboration"
+    category: "Gaming"
   }
 ];
 
@@ -389,60 +467,69 @@ export const DEFAULT_TIMELINE: TimelineMilestone[] = [
   {
     id: 'time-1',
     year: '2021',
-    title: 'Ignition — The First Lines of Code',
-    description: 'Began programming with Python and web fundamentals. Discovered the thrill of building things from pure logic.'
+    title: 'First Curiosity & Hello World',
+    description: 'Wrote my first Python scripts and web pages. Fell in love with the feeling of creating things from pure code.'
   },
   {
     id: 'time-2',
     year: '2023',
-    title: 'Full-Stack & Systems Architecture',
-    description: 'Transitioned to modern TypeScript, Next.js, and cloud backends. Built production-ready microservices and real-time platforms.'
+    title: 'Building GSConfession',
+    description: 'Created and deployed an anonymous student social platform on WordPress and BuddyBoss, handling thousands of student visits.'
   },
   {
     id: 'time-3',
     year: '2024',
-    title: 'The 3D & Creative Web Frontier',
-    description: 'Fell in love with Three.js, shaders, and spatial computing. Designed interactive digital experiences and creative portfolios.'
+    title: 'Modern TypeScript & Frontend Engineering',
+    description: 'Transitioned to React, Next.js, TypeScript, and modern UI design principles.'
   },
   {
     id: 'time-4',
     year: '2025',
-    title: 'AI Engineering & Deep Telemetry',
-    description: 'Integrated local LLMs, fine-tuning workflows, and low-level Windows systems telemetry engines.'
+    title: 'Conception of StudentHub Nepal',
+    description: 'Began architecting a comprehensive student platform tailored specifically for school and college students in Nepal.'
   },
   {
     id: 'time-5',
     year: '2026',
-    title: 'Launch of SID UNIVERSE',
-    description: 'Unified all creations, studies, gaming worlds, and live activity into an interconnected digital universe.'
+    title: 'Personal Digital Workspace',
+    description: 'Refined my personal web space, Python data science exploration, and companion desktop ecosystem.'
   }
 ];
 
 export const DEFAULT_ACTIVITY: PublicActivity = {
   isOnline: true,
   lastHeartbeat: new Date().toISOString(),
-  customStatus: "Constructing cosmic web systems 🛸",
+  customStatus: "Building StudentHub Nepal & learning Python",
+  currentActivityLabel: "Coding in VS Code",
+  currentApp: "Visual Studio Code",
+  browserTab: {
+    title: "Next.js Documentation — App Router",
+    domain: "nextjs.org"
+  },
   currentGame: {
-    title: "Counter-Strike 2",
-    category: "Tactical FPS",
+    title: "Grand Theft Auto V",
+    platform: "PC",
+    category: "Action Adventure",
     detectedAt: new Date().toISOString()
   },
   currentMusic: {
     title: "Resonance",
     artist: "HOME",
-    source: "Spotify Desktop",
+    source: "Spotify",
     detectedAt: new Date().toISOString()
   },
   currentCoding: {
-    project: "SID UNIVERSE",
-    file: "UniverseCanvas.tsx",
+    project: "StudentHub Nepal",
+    file: "page.tsx",
     editor: "Visual Studio Code",
     detectedAt: new Date().toISOString()
   },
-  lastActiveTime: new Date().toISOString()
+  currentProject: DEFAULT_CURRENT_PROJECT,
+  lastActiveTime: new Date().toISOString(),
+  sharingPaused: false
 };
 
-// Safe in-memory and localStorage unified store with live Firestore sync
+// Unified in-memory, localStorage and live Firestore store
 class UniverseStore {
   private memoryStore: Record<string, any> = {};
   private isListeningToFirestore = false;
@@ -450,15 +537,13 @@ class UniverseStore {
   constructor() {
     this.init();
     if (typeof window !== 'undefined') {
-      // Delay Firestore listeners slightly to ensure DOM & React hydration completes
-      setTimeout(() => this.initFirestore(), 100);
+      setTimeout(() => this.initFirestore(), 150);
     }
   }
 
   private init() {
     if (typeof window !== 'undefined') {
       this.loadOrSeed('siteSettings', DEFAULT_SETTINGS);
-      this.loadOrSeed('planets', INITIAL_PLANETS);
       this.loadOrSeed('projects', DEFAULT_PROJECTS);
       this.loadOrSeed('learningTopics', DEFAULT_LEARNING);
       this.loadOrSeed('games', DEFAULT_GAMES);
@@ -471,7 +556,6 @@ class UniverseStore {
       this.loadOrSeed('anonymousMessages', []);
     } else {
       this.memoryStore['siteSettings'] = DEFAULT_SETTINGS;
-      this.memoryStore['planets'] = INITIAL_PLANETS;
       this.memoryStore['projects'] = DEFAULT_PROJECTS;
       this.memoryStore['learningTopics'] = DEFAULT_LEARNING;
       this.memoryStore['games'] = DEFAULT_GAMES;
@@ -490,7 +574,6 @@ class UniverseStore {
     this.isListeningToFirestore = true;
 
     try {
-      // 1. Single document listeners
       listenDocument<SiteSettings>('siteSettings', 'general', (data) => {
         if (data && Object.keys(data).length > 1) {
           this.updateLocal('siteSettings', { ...DEFAULT_SETTINGS, ...data });
@@ -503,9 +586,7 @@ class UniverseStore {
         }
       });
 
-      // 2. Collection listeners
       const collectionsToListen = [
-        { col: 'planets', key: 'planets' },
         { col: 'projects', key: 'projects' },
         { col: 'learningTopics', key: 'learningTopics' },
         { col: 'games', key: 'games' },
@@ -525,7 +606,7 @@ class UniverseStore {
         });
       });
     } catch (e) {
-      console.warn('Firestore live listener initialization notice:', e);
+      console.warn('Firestore live listener notice:', e);
     }
   }
 
@@ -565,8 +646,6 @@ class UniverseStore {
 
   public set<T>(key: string, value: T): void {
     this.updateLocal(key, value);
-
-    // Asynchronously synchronize with Firestore
     if (typeof window !== 'undefined') {
       this.syncToFirestore(key, value).catch(() => {});
     }

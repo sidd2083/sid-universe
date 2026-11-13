@@ -1,50 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
+  <title>Sid Companion Extension</title>
   <style>
     body {
       width: 260px;
-      padding: 16px;
       margin: 0;
-      background: #080b18;
-      color: #e2e8f0;
-      font-family: sans-serif;
-      font-size: 13px;
+      padding: 16px;
+      background-color: #FAF9F6;
+      color: #151413;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
     .header {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-weight: 700;
-      color: #38bdf8;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
     .dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 6px #10b981;
+      background-color: #10B981;
     }
-    p { margin: 6px 0; color: #94a3b8; line-height: 1.4; font-size: 12px; }
-    .badge {
-      display: inline-block;
-      background: #1e293b;
-      padding: 4px 8px;
-      border-radius: 4px;
-      color: #38bdf8;
+    h1 {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+    p {
+      font-size: 11px;
+      color: #686660;
+      line-height: 1.4;
+      margin: 0 0 12px 0;
+    }
+    .status-box {
+      background-color: #FFFFFF;
+      border: 1px solid #E8E6DF;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 11px;
+    }
+    .port {
       font-family: monospace;
-      margin-top: 8px;
+      color: #96948D;
+      font-size: 10px;
+      margin-top: 4px;
+      display: block;
     }
   </style>
 </head>
 <body>
   <div class="header">
     <div class="dot"></div>
-    <span>SID UNIVERSE BRIDGE</span>
+    <h1>Sid Companion Bridge</h1>
   </div>
-  <p>Automatically syncs your active YouTube & YouTube Music playback to Sid Companion.</p>
-  <div class="badge">Target: 127.0.0.1:49152</div>
+  <p>
+    Active tab YouTube & YouTube Music playback metadata is securely transmitted to Sid Companion locally.
+  </p>
+  <div class="status-box">
+    <strong>Local Bridge Receiver:</strong>
+    <span class="port">http://127.0.0.1:49152</span>
+  </div>
 </body>
 </html>

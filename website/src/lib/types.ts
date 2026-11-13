@@ -1,20 +1,33 @@
-export interface PlanetConfig {
+export interface GreetingLanguage {
   id: string;
+  language: string;
+  greeting: string;
+  pronunciation?: string;
+  enabled: boolean;
+}
+
+export interface WeatherInfo {
+  temperature: number;
+  weatherCode: number;
+  condition: string;
+  isDay: boolean;
+  humidity: number;
+  windSpeed: number;
+  rain: boolean;
+  city: string;
+  sunrise?: string;
+  sunset?: string;
+  updatedAt: string;
+}
+
+export interface CurrentProjectHighlight {
   name: string;
-  sector: string; // e.g. "Sector 01: Origins"
-  path: string; // e.g. "/about"
   description: string;
-  color: string;
-  emissiveColor: string;
-  radius: number;
-  orbitRadius: number;
-  orbitSpeed: number; // orbital rotation speed
-  rotationSpeed: number; // self-axial rotation
-  rings?: boolean;
-  ringColor?: string;
-  texturePattern: 'craters' | 'rings' | 'continents' | 'gas' | 'cyber' | 'waves' | 'mist';
-  visible: boolean;
-  order: number;
+  status: 'Currently Building' | 'Built' | 'Want to Build';
+  link?: string;
+  imageUrl?: string;
+  technologies?: string[];
+  updatedAt: string;
 }
 
 export interface Project {
@@ -22,11 +35,14 @@ export interface Project {
   title: string;
   description: string;
   longDescription?: string;
-  category: 'Full-Stack' | 'AI & ML' | '3D & Creative' | 'Mobile & Desktop' | 'Tools';
+  whyBuilt?: string;
+  problemAddressed?: string;
+  learnings?: string;
+  category: 'Full-Stack' | 'AI & ML' | 'Student Platform' | 'Creative' | 'Systems' | 'Tools';
   coverImage: string;
   screenshots?: string[];
   technologies: string[];
-  status: 'Completed' | 'Currently Building' | 'Planned Idea';
+  status: 'Built' | 'Currently Building' | 'Want to Build';
   startDate?: string;
   completionDate?: string;
   liveUrl?: string;
@@ -38,12 +54,13 @@ export interface Project {
 export interface LearningTopic {
   id: string;
   title: string;
-  category: 'Programming' | 'AI & ML' | 'Cybersecurity' | 'Web Development' | '3D & Blender' | 'Video Editing' | 'DevOps';
+  categoryType: 'currently-learning' | 'want-to-learn';
+  category: 'Programming' | 'AI & ML' | 'Data Science' | 'Web Development' | '3D & Blender' | 'Creative Tools' | 'Systems';
   description: string;
-  notes: string;
+  notes?: string;
   resources: { title: string; url: string }[];
-  startDate: string;
-  status: 'In Progress' | 'Mastered' | 'Queued';
+  startDate?: string;
+  status: 'In Progress' | 'Exploring' | 'Queued' | 'Mastered';
   progress?: number; // 0 to 100 percentage
   featured: boolean;
   order: number;
@@ -52,7 +69,7 @@ export interface LearningTopic {
 export interface Game {
   id: string;
   title: string;
-  platform: 'PC' | 'PlayStation' | 'Steam' | 'Cross-Platform';
+  platform: 'PC' | 'Steam' | 'PlayStation' | 'Cross-Platform';
   genre: string;
   coverImage: string;
   description: string;
@@ -73,7 +90,7 @@ export interface Song {
   duration?: string;
   spotifyUrl?: string;
   youtubeUrl?: string;
-  audioPreviewUrl?: string; // Optional MP3 preview
+  audioPreviewUrl?: string;
   genre?: string;
   isFavorite: boolean;
   featured: boolean;
@@ -105,6 +122,7 @@ export interface WatchlistItem {
 export interface AnonymousMessage {
   id: string;
   message: string;
+  category?: string;
   createdAt: string;
   isRead: boolean;
   reply?: string;
@@ -125,8 +143,16 @@ export interface PublicActivity {
   isOnline: boolean;
   lastHeartbeat: string;
   customStatus?: string;
+  currentActivityLabel?: string; // e.g. "Watching YouTube", "Coding in VS Code", "Playing GTA V"
+  currentApp?: string; // e.g. "Google Chrome", "Visual Studio Code"
+  browserTab?: {
+    title: string;
+    domain?: string;
+    url?: string;
+  } | null;
   currentGame?: {
     title: string;
+    platform?: string;
     category?: string;
     detectedAt: string;
   } | null;
@@ -143,7 +169,9 @@ export interface PublicActivity {
     editor: string;
     detectedAt: string;
   } | null;
+  currentProject?: CurrentProjectHighlight | null;
   lastActiveTime?: string;
+  sharingPaused?: boolean;
 }
 
 export interface SiteSettings {
@@ -152,6 +180,16 @@ export interface SiteSettings {
   bio: string;
   profileImage: string;
   nepalTimezone: string;
+  locationCity: string;
+  clockFormat: '12h' | '24h';
+  greetings: GreetingLanguage[];
+  greetingIntervalMs: number;
+  greetingPaused: boolean;
+  currentProject: CurrentProjectHighlight;
+  footerQuote: {
+    quote: string;
+    author: string;
+  };
   socialLinks: {
     snapchat?: string;
     discord?: string;
