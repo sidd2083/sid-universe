@@ -16,7 +16,25 @@ export function BackgroundMusicPlayer({ settings }: BackgroundMusicPlayerProps) 
   const [isMuted, setIsMuted] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
 
-  // If not enabled or no URL, do not render
+  // Attempt autoplay if configured (browsers may restrict this without user gesture)
+  useEffect(() => {
+    if (musicConfig?.autoplay && musicConfig?.enabled && musicConfig?.audioUrl && audioRef.current && !hasStarted) {
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+            setHasStarted(true);
+          })
+          .catch(() => {
+            // Autoplay blocked by browser policy until interaction
+            setIsPlaying(false);
+          });
+      }
+    }
+  }, [musicConfig?.autoplay, musicConfig?.enabled, musicConfig?.audioUrl, hasStarted]);
+
+  // If not enabled or no URL, do not render UI (called AFTER all hooks)
   if (!musicConfig || !musicConfig.enabled || !musicConfig.audioUrl) {
     return null;
   }
@@ -42,24 +60,6 @@ export function BackgroundMusicPlayer({ settings }: BackgroundMusicPlayerProps) 
     audioRef.current.muted = !isMuted;
     setIsMuted(!isMuted);
   };
-
-  // Attempt autoplay if configured (browsers may restrict this without user gesture)
-  useEffect(() => {
-    if (musicConfig.autoplay && audioRef.current && !hasStarted) {
-      const playPromise = audioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setIsPlaying(true);
-            setHasStarted(true);
-          })
-          .catch(() => {
-            // Autoplay blocked by browser policy until interaction
-            setIsPlaying(false);
-          });
-      }
-    }
-  }, [musicConfig.autoplay, musicConfig.audioUrl, hasStarted]);
 
   return (
     <div className="fixed bottom-5 right-5 z-40 flex items-center gap-2 bg-[#FAF9F6]/95 backdrop-blur-md border border-[#E8E6DF] shadow-sm rounded-full px-3.5 py-2 transition-all duration-200 hover:shadow-md hover:border-[#D8D6CF]">

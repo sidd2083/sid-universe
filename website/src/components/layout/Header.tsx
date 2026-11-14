@@ -63,15 +63,23 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 w-full bg-warm-bg/90 backdrop-blur-md border-b border-warm-border/70 transition-colors duration-500">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        {/* Left: Minimal Wordmark */}
+        {/* Left: Authentic SID Brand Monogram & Wordmark */}
         <Link href="/" className="group flex items-center gap-2.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-warm-text group-hover:scale-125 transition-transform" />
-          <span className="font-semibold text-base sm:text-lg tracking-tight text-warm-text">
-            SID
-          </span>
-          <span className="text-xs text-warm-muted font-normal hidden sm:inline">
-            / universe
-          </span>
+          <div className="w-8 h-8 rounded-xl bg-warm-surface border border-warm-border shadow-apple-sm flex items-center justify-center text-warm-text group-hover:border-warm-text/40 group-hover:scale-105 transition-all">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <circle cx="12" cy="12" r="9" strokeDasharray="3 3" />
+              <path d="M12 2v2M12 20v2M2 12h2M20 12h2" opacity="0.6" />
+            </svg>
+          </div>
+          <div className="flex flex-col">
+            <span className="font-bold text-sm tracking-tight text-warm-text group-hover:text-black transition-colors leading-none">
+              SID
+            </span>
+            <span className="text-[10px] text-warm-muted font-mono tracking-wider uppercase leading-none mt-1">
+              Universe
+            </span>
+          </div>
         </Link>
 
         {/* Center / Right: Desktop Navigation */}
@@ -115,17 +123,17 @@ export default function Header() {
             </div>
           )}
 
-          {/* Real Colorful Brand Social Badges */}
-          <div className="flex items-center gap-1.5">
+          {/* Authentic Real Brand Social Icons */}
+          <div className="flex items-center gap-1">
             {socials.discord && (
               <a
                 href={socials.discord}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Discord"
-                className="transition"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-warm-secondary hover:text-[#5865F2] hover:bg-warm-surface transition-all duration-200"
               >
-                <DiscordIcon size={15} />
+                <DiscordIcon size={16} />
               </a>
             )}
             {socials.steam && (
@@ -134,9 +142,9 @@ export default function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Steam"
-                className="transition"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-warm-secondary hover:text-[#171A21] hover:bg-warm-surface transition-all duration-200"
               >
-                <SteamIcon size={15} />
+                <SteamIcon size={16} />
               </a>
             )}
             {socials.youtube && (
@@ -145,9 +153,9 @@ export default function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 title="YouTube"
-                className="transition"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-warm-secondary hover:text-[#FF0000] hover:bg-warm-surface transition-all duration-200"
               >
-                <YouTubeIcon size={15} />
+                <YouTubeIcon size={16} />
               </a>
             )}
             {socials.snapchat && (
@@ -156,9 +164,9 @@ export default function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Snapchat"
-                className="transition"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-warm-secondary hover:text-amber-500 hover:bg-warm-surface transition-all duration-200"
               >
-                <SnapchatIcon size={15} />
+                <SnapchatIcon size={16} />
               </a>
             )}
             {socials.facebook && (
@@ -167,9 +175,9 @@ export default function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Facebook"
-                className="transition"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-warm-secondary hover:text-[#1877F2] hover:bg-warm-surface transition-all duration-200"
               >
-                <FacebookIcon size={15} />
+                <FacebookIcon size={16} />
               </a>
             )}
             {socials.github && (
@@ -178,9 +186,9 @@ export default function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 title="GitHub"
-                className="transition"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-warm-secondary hover:text-warm-text hover:bg-warm-surface transition-all duration-200"
               >
-                <GitHubIcon size={15} />
+                <GitHubIcon size={16} />
               </a>
             )}
           </div>

@@ -87,7 +87,9 @@ export function listenDocument<T>(
 export async function saveDocument(collectionName: string, docId: string, data: any) {
   try {
     const docRef = doc(db, collectionName, docId);
-    await setDoc(docRef, { ...data, updatedAt: serverTimestamp() }, { merge: true });
+    // Deep-clean data to remove any undefined fields that crash Firestore setDoc
+    const cleanData = JSON.parse(JSON.stringify(data));
+    await setDoc(docRef, { ...cleanData, updatedAt: serverTimestamp() }, { merge: true });
     return { success: true };
   } catch (error: any) {
     console.warn(`Failed writing to Firestore ${collectionName}/${docId}:`, error.message);

@@ -23,7 +23,7 @@ export default function AdminLoginPage() {
   const checkIsAdmin = async (email: string): Promise<boolean> => {
     const cleanEmail = email.toLowerCase().trim();
 
-    // 1. Check base allowlist or env var
+    // 1. Check strict authorized allowlist or env var
     const envEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '')
       .toLowerCase()
       .split(',')
@@ -35,12 +35,7 @@ export default function AdminLoginPage() {
       return true;
     }
 
-    // Pattern matching for Siddhant's official handles
-    if (cleanEmail.startsWith('sidd2083') || cleanEmail.startsWith('sidhoni') || cleanEmail.includes('siddhant')) {
-      return true;
-    }
-
-    // 2. Check Firestore 'admins' collection for this email
+    // 2. Check Firestore 'admins' collection for this exact email
     try {
       const adminDoc = await getDoc(doc(db, 'admins', cleanEmail));
       if (adminDoc.exists() && adminDoc.data()?.isAdmin !== false) {
