@@ -453,6 +453,7 @@ class UniverseStore {
 
   private async syncToFirestore(key: string, value: any) {
     try {
+      // 1. Direct client-side attempt
       if (key === 'siteSettings') {
         await saveDocument('siteSettings', 'general', value);
       } else if (key === 'publicActivity') {
@@ -464,6 +465,18 @@ class UniverseStore {
           }
         }
       }
+
+      // 2. Fallback resilient server-side API sync
+      fetch('/api/store', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          collection: key,
+          items: Array.isArray(value) ? value : undefined,
+          id: !Array.isArray(value) && key === 'siteSettings' ? 'general' : undefined,
+          data: !Array.isArray(value) ? value : undefined
+        })
+      }).catch(() => {});
     } catch (e) {
       // Non-blocking fallback
     }

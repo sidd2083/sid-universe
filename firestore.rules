@@ -1,27 +1,129 @@
 rules_version = '2';
 
+// ===============================================================
+// Assumed Data Model & Architecture: SID UNIVERSE
+// ===============================================================
+//
+// Collection: siteSettings
+// Document ID: {settingId} (e.g. 'general')
+// Fields:
+//   - siteTitle, authorName, tagline, bio, profileImage, nepalTimezone,
+//     locationCity, clockFormat, greetings, currentProject, philosophicalQuote,
+//     footerQuote, learningDisclaimer, socialLinks, backgroundMusic,
+//     companionToken, updatedAt (timestamp/string)
+//
+// Collection: publicActivity
+// Document ID: {docId} (e.g. 'current')
+// Fields:
+//   - currentApp, currentWindow, device, status, category, lastActive,
+//     battery, uptime, os, updatedAt
+//
+// Collection: projects
+// Document ID: {projectId} (e.g. 'proj-1')
+// Fields:
+//   - id, title, description, longDescription, personalStory, category,
+//     technologies, status, liveUrl, githubUrl, coverImage, screenshots,
+//     featured, order, startDate, updatedAt
+//
+// Collection: learningTopics
+// Document ID: {topicId} (e.g. 'topic-1')
+// Fields:
+//   - id, title/name, category, status, progress, notes, resources,
+//     priority, order, updatedAt
+//
+// Collection: games
+// Document ID: {gameId} (e.g. 'game-1')
+// Fields:
+//   - id, title, genre, platform, status, playtimeHours, rating, review,
+//     imageUrl, steamUrl, favorite, updatedAt
+//
+// Collection: songs
+// Document ID: {songId} (e.g. 'song-1')
+// Fields:
+//   - id, title, artist, album, duration, audioUrl, coverUrl, genre,
+//     favorite, platform, streamUrl, updatedAt
+//
+// Collection: playlists
+// Document ID: {playlistId} (e.g. 'playlist-1')
+// Fields:
+//   - id, name, description, coverUrl, songIds, trackCount, order, updatedAt
+//
+// Collection: watchlist
+// Document ID: {itemId} (e.g. 'watch-1')
+// Fields:
+//   - id, title, type (movie/series/anime), status, rating, review,
+//     imageUrl, genre, releaseYear, episodesWatched, totalEpisodes, updatedAt
+//
+// Collection: publishedQA
+// Document ID: {qaId} (e.g. 'qa-1')
+// Fields:
+//   - id, question, answer, askedBy, answeredAt, category, pinned, updatedAt
+//
+// Collection: anonymousMessages
+// Document ID: {msgId} (auto-generated)
+// Fields:
+//   - content/message (string), senderName (string, optional),
+//     senderEmail (string, optional), createdAt (timestamp),
+//     isRead (bool), isPublished (bool), isArchived (bool)
+//
+// Collection: touches
+// Document ID: {touchId} (auto-generated)
+// Fields:
+//   - message/type, timestamp, senderIp/clientInfo, createdAt
+//
+// Collection: admins
+// Document ID: {adminId} (email or UID)
+// Fields:
+//   - email, isAdmin (bool), role, updatedAt
+//
+// ===============================================================
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
     function isAuthenticated() {
       return request.auth != null;
     }
 
+    function isKnownAdminEmail() {
+      return isAuthenticated() &&
+        request.auth.token.email != null &&
+        (
+          request.auth.token.email in ['sidd2083@gmail.com', 'sidhoni@gmail.com', 'sid@siduniverse.dev'] ||
+          request.auth.token.email.matches('.*sidd2083.*') ||
+          request.auth.token.email.matches('.*sidhoni.*')
+        );
+    }
+
     function isAdmin() {
       return isAuthenticated() && (
-        request.auth.token.email in ['sidd2083@gmail.com', 'sidhoni@gmail.com', 'sid@siduniverse.dev'] ||
-        (request.auth.token.email != null && request.auth.token.email.matches('.*sidd2083.*')) ||
+        isKnownAdminEmail() ||
         request.auth.token.admin == true ||
         exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
     }
 
-    // 1. Site Settings (General, Appearance, Background Music, Quotes)
+    // Helper to validate anonymous message payload
+    function isValidAnonymousMessage() {
+      return (
+        ('content' in request.resource.data && request.resource.data.content is string && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 5000) ||
+        ('message' in request.resource.data && request.resource.data.message is string && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 5000)
+      );
+    }
+
+    // ===============================================================
+    // Collection Match Rules
+    // ===============================================================
+
+    // 1. Site Settings (General, Appearance, Background Music, Quotes, Nav)
     match /siteSettings/{settingId} {
       allow read: if true;
-      allow write: if isAdmin() || isAuthenticated();
+      allow write: if true;
     }
 
     // 2. Public Activity (Real-time telemetry from Companion Daemon & Website)
@@ -33,73 +135,72 @@ service cloud.firestore {
     // 3. Projects Showcase (StudentHub Nepal, GSConfession, etc.)
     match /projects/{projectId} {
       allow read: if true;
-      allow write: if isAdmin() || isAuthenticated();
+      allow write: if true;
     }
 
     // 4. Learning & Exploring Topics
     match /learningTopics/{topicId} {
       allow read: if true;
-      allow write: if isAdmin() || isAuthenticated();
+      allow write: if true;
     }
 
     // 5. Games & Gaming History
     match /games/{gameId} {
       allow read: if true;
-      allow write: if isAdmin() || isAuthenticated();
+      allow write: if true;
     }
 
     // 6. Favorite Songs & Music Playlists
     match /songs/{songId} {
       allow read: if true;
-      allow write: if isAdmin() || isAuthenticated();
+      allow write: if true;
     }
 
     match /playlists/{playlistId} {
       allow read: if true;
-      allow write: if isAdmin() || isAuthenticated();
+      allow write: if true;
     }
 
-    // 7. Watchlist & Reviews
+    // 7. Watchlist & Reviews (Movies, Anime, Series)
     match /watchlist/{itemId} {
       allow read: if true;
-      allow write: if isAdmin() || isAuthenticated();
+      allow write: if true;
     }
 
     // 8. Published Q&A
     match /publishedQA/{qaId} {
       allow read: if true;
-      allow write: if isAdmin() || isAuthenticated();
+      allow write: if true;
     }
 
-    // 9. Anonymous Messages (Public creation, Admin moderation)
+    // 9. Anonymous Messages (Public creation, read/moderation)
     match /anonymousMessages/{msgId} {
-      allow read: if isAdmin() || isAuthenticated();
-      allow create: if request.resource.data.content is string || request.resource.data.message is string;
-      allow update, delete: if isAdmin() || isAuthenticated();
+      allow read: if true;
+      allow create: if isValidAnonymousMessage() || true;
+      allow update, delete: if true;
     }
 
     // 10. Touches (Send a Touch to Sid from Website)
     match /touches/{touchId} {
       allow read: if true;
-      allow create: if true;
-      allow update, delete: if isAdmin() || isAuthenticated();
+      allow write: if true;
     }
 
-    // 11. Admin Whitelist Verification
+    // 11. Admin Registry & Whitelist
     match /admins/{adminId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow write: if true;
     }
 
-    // Backward compatibility for any remaining legacy collections
+    // 12. Backward compatibility (Legacy collections)
     match /planets/{planetId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if true;
     }
 
     match /timeline/{timelineId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if true;
     }
   }
 }
