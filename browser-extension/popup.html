@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sid Companion Extension</title>
+  <title>Sid Universe Activity Bridge</title>
   <style>
     body {
-      width: 260px;
+      width: 290px;
       margin: 0;
       padding: 16px;
       background-color: #FAF9F6;
@@ -16,54 +16,132 @@
     .header {
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: space-between;
       margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #E8E6DF;
+    }
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #151413;
     }
     .dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
+      background-color: #9CA3AF;
+      transition: background-color 0.3s;
+    }
+    .dot.connected {
       background-color: #10B981;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+    }
+    .dot.disconnected {
+      background-color: #EF4444;
     }
     h1 {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       margin: 0;
       letter-spacing: -0.01em;
     }
-    p {
-      font-size: 11px;
-      color: #686660;
-      line-height: 1.4;
-      margin: 0 0 12px 0;
-    }
-    .status-box {
+    .card {
       background-color: #FFFFFF;
       border: 1px solid #E8E6DF;
-      border-radius: 10px;
-      padding: 10px;
-      font-size: 11px;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
-    .port {
-      font-family: monospace;
-      color: #96948D;
+    .label {
       font-size: 10px;
-      margin-top: 4px;
+      font-family: monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #78756D;
       display: block;
+      margin-bottom: 4px;
+    }
+    .title-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: #151413;
+      line-height: 1.35;
+      word-break: break-word;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .domain-badge {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 2px 6px;
+      background: #F3F1EA;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: monospace;
+      color: #585650;
+    }
+    .sync-btn {
+      width: 100%;
+      padding: 8px 12px;
+      background-color: #151413;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background-color 0.2s;
+    }
+    .sync-btn:hover {
+      background-color: #262523;
+    }
+    .sync-btn:active {
+      transform: scale(0.98);
+    }
+    .footer-note {
+      font-size: 10px;
+      color: #8C8980;
+      text-align: center;
+      margin-top: 10px;
+      line-height: 1.3;
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <div class="dot"></div>
-    <h1>Sid Companion Bridge</h1>
+    <h1>Sid Universe Bridge</h1>
+    <div class="status-badge">
+      <div id="statusDot" class="dot"></div>
+      <span id="statusText">Checking...</span>
+    </div>
   </div>
-  <p>
-    Active tab YouTube & YouTube Music playback metadata is securely transmitted to Sid Companion locally.
-  </p>
-  <div class="status-box">
-    <strong>Local Bridge Receiver:</strong>
-    <span class="port">http://127.0.0.1:49152</span>
+
+  <div class="card">
+    <span class="label">Transmitting Tab:</span>
+    <div id="tabTitle" class="title-text">Detecting active tab...</div>
+    <span id="tabDomain" class="domain-badge">chrome-active</span>
   </div>
+
+  <button id="syncBtn" class="sync-btn">
+    <span>Transmit to Companion Now</span>
+  </button>
+
+  <div class="footer-note">
+    Bridge Port: 127.0.0.1:49152<br>
+    Requires Sid Companion app running in tray.
+  </div>
+
+  <script src="popup.js"></script>
 </body>
 </html>

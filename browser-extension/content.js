@@ -1,4 +1,4 @@
-// Sid Universe YouTube / YouTube Music Media Bridge
+// Sid Universe Chrome Activity Bridge — Content Script
 (function () {
   let lastReported = '';
 
@@ -7,13 +7,28 @@
     if (key === lastReported) return;
     lastReported = key;
 
-    fetch('http://127.0.0.1:49152/media', {
+    // Send to background service worker
+    try {
+      chrome.runtime.sendMessage({
+        type: 'MEDIA_UPDATE',
+        title: info.title,
+        channel: info.channel,
+        url: info.url || window.location.href
+      });
+    } catch (e) {}
+
+    // Direct HTTP fallback to Companion
+    fetch('http://127.0.0.1:49152/activity', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(info)
-    }).catch(() => {
-      // Companion might be in stealth mode or closed, ignore silently
-    });
+      body: JSON.stringify({
+        source: 'YouTube',
+        title: info.title,
+        channel: info.channel,
+        url: info.url || window.location.href,
+        domain: window.location.hostname
+      })
+    }).catch(() => {});
   }
 
   function checkYouTubeMusic() {
@@ -43,8 +58,13 @@
 
     const videoEl = document.querySelector('video');
     if (videoEl && !videoEl.paused && !videoEl.ended) {
-      const titleEl = document.querySelector('h1.ytd-watch-metadata yt-formatted-string') || document.querySelector('h1.title');
-      const channelEl = document.querySelector('ytd-channel-name a') || document.querySelector('#channel-name a');
+      const titleEl =
+        document.querySelector('h1.ytd-watch-metadata yt-formatted-string') ||
+        document.querySelector('h1.title yt-formatted-string') ||
+        document.querySelector('h1.title');
+      const channelEl =
+        document.querySelector('ytd-channel-name a') ||
+        document.querySelector('#channel-name a');
 
       if (titleEl && titleEl.textContent.trim()) {
         reportMedia({
@@ -57,9 +77,12 @@
     }
   }
 
-  setInterval(() => {
-    if (!checkYouTubeMusic()) {
-      checkStandardYouTube();
-    }
-  }, 4000);
+  // Scan YouTube players every 2.5 seconds
+  if (window.location.hostname.includes('youtube.com')) {
+    setInterval(() => {
+      if (!checkYouTubeMusic()) {
+        checkStandardYouTube();
+      }
+    }, 2500);
+  }
 })();

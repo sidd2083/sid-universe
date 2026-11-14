@@ -15,8 +15,12 @@ export default function LearningPage() {
     setSettings(universeStore.get('siteSettings', DEFAULT_SETTINGS));
   }, []);
 
-  const currentlyLearning = topics.filter((t) => t.categoryType === 'currently-learning');
-  const wantToLearn = topics.filter((t) => t.categoryType === 'want-to-learn');
+  const activeTopics = (topics && topics.length > 0 && topics.some(t => t.categoryType === 'currently-learning'))
+    ? topics
+    : DEFAULT_LEARNING;
+
+  const currentlyLearning = activeTopics.filter((t) => t.categoryType === 'currently-learning');
+  const wantToLearn = activeTopics.filter((t) => t.categoryType === 'want-to-learn');
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-12">

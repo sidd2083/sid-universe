@@ -68,15 +68,25 @@ function startLocalExtensionServer() {
         return;
       }
 
+      if (req.method === 'GET' && (req.url === '/health' || req.url === '/ping')) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ status: 'ok', client: 'Sid Companion', time: Date.now() }));
+        return;
+      }
+
       if (req.method === 'POST' && (req.url === '/activity' || req.url === '/media')) {
         let body = '';
         req.on('data', chunk => { body += chunk; });
-        req.on('end', () => {
+        req.on('end', async () => {
           try {
             const data = JSON.parse(body);
             activityDetector.setBrowserTab(data);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ success: true }));
+
+            // Immediately scan and sync when new Chrome tab is reported
+            await performActivityScan();
+            await syncTelemetry();
           } catch (e) {
             res.writeHead(400);
             res.end(JSON.stringify({ error: 'Invalid JSON' }));

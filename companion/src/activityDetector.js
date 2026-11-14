@@ -152,25 +152,31 @@ class ActivityDetector {
           }
         }
 
-        // 4. Browser reported media (YouTube / YouTube Music)
-        if (
-          !detectedMusic &&
-          this.browserReportedTab &&
-          Date.now() - this.browserReportedTab.timestamp < 25000 &&
-          this.browserReportedTab.title
-        ) {
-          if (this.browserReportedTab.title.includes('YouTube')) {
-            const cleanTitle = this.browserReportedTab.title.replace(' - YouTube', '').trim();
+        // 4. Browser reported activity (YouTube, Media, or Web browsing from Chrome extension)
+        const isBrowserRecent = this.browserReportedTab && (Date.now() - this.browserReportedTab.timestamp < 45000);
+        if (isBrowserRecent && this.browserReportedTab.title) {
+          const tab = this.browserReportedTab;
+          const cleanTitle = (tab.title || '').trim();
+          const domain = (tab.domain || '').toLowerCase();
+
+          if (cleanTitle.toLowerCase().includes('youtube') || domain.includes('youtube.com') || tab.source === 'YouTube') {
+            const videoTitle = cleanTitle.replace(/\s*-\s*YouTube.*$/i, '').trim();
             detectedMusic = {
-              title: cleanTitle,
-              artist: this.browserReportedTab.channel || 'YouTube',
+              title: videoTitle,
+              artist: tab.channel || 'YouTube',
               source: 'YouTube',
-              url: this.browserReportedTab.url || '',
+              url: tab.url || '',
               detectedAt: new Date().toISOString()
             };
             if (!detectedApp) {
               detectedApp = 'Google Chrome';
-              appDetails = `Watching: ${cleanTitle}`;
+              appDetails = `Watching: ${videoTitle}`;
+            }
+          } else {
+            // General Chrome web browsing
+            if (!detectedApp && !detectedGame && !detectedCoding) {
+              detectedApp = 'Google Chrome';
+              appDetails = cleanTitle;
             }
           }
         }
@@ -211,6 +217,18 @@ class ActivityDetector {
       siddhantAction = `Siddhant is currently watching YouTube: "${music.title}"`;
     } else if (music) {
       siddhantAction = `Siddhant is currently listening to ${music.title} by ${music.artist}`;
+    } else if (app === 'Google Chrome') {
+      if (details && details.startsWith('Watching: ')) {
+        siddhantAction = `Siddhant is currently watching YouTube: "${details.replace('Watching: ', '')}"`;
+      } else if (details && details.toLowerCase().includes('github')) {
+        siddhantAction = `Siddhant is currently browsing GitHub: "${details.replace(/\s*·\s*GitHub.*$/i, '').trim()}"`;
+      } else if (details && details.toLowerCase().includes('studenthub')) {
+        siddhantAction = 'Siddhant is currently testing StudentHub Nepal';
+      } else if (details) {
+        siddhantAction = `Siddhant is currently browsing "${details}"`;
+      } else {
+        siddhantAction = 'Siddhant is currently browsing in Chrome';
+      }
     } else if (app) {
       siddhantAction = `Siddhant is currently using ${app}`;
     }

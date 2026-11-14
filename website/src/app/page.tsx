@@ -93,11 +93,15 @@ export default function HomePage() {
       </section>
 
       {/* 2. ABOUT ME: Honest & Philosophical Introduction */}
-      <section className="apple-card p-6 sm:p-8 bg-warm-surface border border-warm-border shadow-apple-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-          <span className="text-xs font-mono uppercase tracking-wider text-warm-muted">
-            Personal Introduction
-          </span>
+      <section className="apple-card p-6 sm:p-9 bg-warm-surface border border-warm-border/80 shadow-apple-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-warm-border/60">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-warm-muted">
+              Personal Introduction
+            </span>
+            <span className="text-warm-border">•</span>
+            <span className="text-[11px] font-mono text-warm-secondary">Hetauda, Nepal</span>
+          </div>
           <Link
             href="/about"
             className="text-xs font-semibold text-warm-text hover:text-warm-amber flex items-center gap-1 group self-start sm:self-auto"
@@ -107,16 +111,31 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <h2 className="text-xl sm:text-2xl font-bold text-warm-text tracking-tight mb-3">
-          {settings.tagline}
-        </h2>
-        <div className="space-y-3 text-sm sm:text-base text-warm-secondary leading-relaxed max-w-3xl">
-          <p>
-            Hey! I am Siddhant, you can also call me Sidd. I am a full-time student currently studying in grade 11, part-time coder and builder, and casual gamer playing new games every day.
-          </p>
-          <p>
-            In reality, I hate everything sometimes — the routine, the classes, and even the games. But I enjoy the process of making things from scratch. It gives me a dopamine rush, and at the end of the day, it's just me sitting in my room in front of my PC trying to figure out life.
-          </p>
+        <div className="space-y-3">
+          <h2 className="text-xl sm:text-2xl font-bold text-warm-text tracking-tight">
+            {settings.tagline}
+          </h2>
+          <div className="space-y-3 text-sm sm:text-base text-warm-secondary leading-relaxed max-w-3xl">
+            <p>
+              Hey! I am Siddhant, you can also call me Sidd. I am a full-time student currently studying in grade 11, part-time coder and builder, and casual gamer playing new games every day.
+            </p>
+            <p>
+              In reality, I hate everything sometimes — the routine, the classes, and even the games. But I enjoy the process of making things from scratch. It gives me a dopamine rush, and at the end of the day, it's just me sitting in my room in front of my PC trying to figure out life.
+            </p>
+          </div>
+        </div>
+
+        {/* Albert Camus Quote Callout */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-warm-subtle/80 border border-warm-border/60 flex items-start gap-3">
+          <span className="text-2xl text-warm-muted/60 font-serif leading-none select-none">“</span>
+          <div>
+            <blockquote className="text-xs sm:text-sm text-warm-text italic leading-relaxed font-serif">
+              "{settings.philosophicalQuote?.quote || "In the midst of winter, I found there was, within me, an invincible summer."}"
+            </blockquote>
+            <cite className="block text-[10px] font-mono uppercase tracking-widest text-warm-muted mt-1.5 not-italic">
+              — {settings.philosophicalQuote?.author || "Albert Camus"}
+            </cite>
+          </div>
         </div>
       </section>
 

@@ -305,6 +305,8 @@ export const DEFAULT_ACTIVITY: PublicActivity = {
   lastActiveTime: new Date().toISOString()
 };
 
+const SCHEMA_VERSION = 'v2.3.0_sidd_refresh';
+
 // Unified in-memory, localStorage and live Firestore store
 class UniverseStore {
   private memoryStore: Record<string, any> = {};
@@ -319,16 +321,23 @@ class UniverseStore {
 
   private init() {
     if (typeof window !== 'undefined') {
-      this.loadOrSeed('siteSettings', DEFAULT_SETTINGS);
-      this.loadOrSeed('projects', DEFAULT_PROJECTS);
-      this.loadOrSeed('learningTopics', DEFAULT_LEARNING);
-      this.loadOrSeed('games', DEFAULT_GAMES);
-      this.loadOrSeed('songs', DEFAULT_SONGS);
-      this.loadOrSeed('playlists', DEFAULT_PLAYLISTS);
-      this.loadOrSeed('watchlist', DEFAULT_WATCHLIST);
-      this.loadOrSeed('publishedQA', DEFAULT_PUBLISHED_QA);
-      this.loadOrSeed('publicActivity', DEFAULT_ACTIVITY);
-      this.loadOrSeed('anonymousMessages', []);
+      const currentVer = localStorage.getItem('sid_store_version');
+      const shouldForceSeed = currentVer !== SCHEMA_VERSION;
+
+      if (shouldForceSeed) {
+        localStorage.setItem('sid_store_version', SCHEMA_VERSION);
+      }
+
+      this.loadOrSeed('siteSettings', DEFAULT_SETTINGS, shouldForceSeed);
+      this.loadOrSeed('projects', DEFAULT_PROJECTS, shouldForceSeed);
+      this.loadOrSeed('learningTopics', DEFAULT_LEARNING, shouldForceSeed);
+      this.loadOrSeed('games', DEFAULT_GAMES, shouldForceSeed);
+      this.loadOrSeed('songs', DEFAULT_SONGS, shouldForceSeed);
+      this.loadOrSeed('playlists', DEFAULT_PLAYLISTS, shouldForceSeed);
+      this.loadOrSeed('watchlist', DEFAULT_WATCHLIST, shouldForceSeed);
+      this.loadOrSeed('publishedQA', DEFAULT_PUBLISHED_QA, shouldForceSeed);
+      this.loadOrSeed('publicActivity', DEFAULT_ACTIVITY, shouldForceSeed);
+      this.loadOrSeed('anonymousMessages', [], false);
     } else {
       this.memoryStore['siteSettings'] = DEFAULT_SETTINGS;
       this.memoryStore['projects'] = DEFAULT_PROJECTS;
@@ -383,8 +392,13 @@ class UniverseStore {
     }
   }
 
-  private loadOrSeed(key: string, defaultValue: any) {
+  private loadOrSeed(key: string, defaultValue: any, forceSeed: boolean = false) {
     try {
+      if (forceSeed) {
+        this.memoryStore[key] = defaultValue;
+        localStorage.setItem(`sid_universe_${key}`, JSON.stringify(defaultValue));
+        return;
+      }
       const stored = localStorage.getItem(`sid_universe_${key}`);
       if (stored) {
         this.memoryStore[key] = JSON.parse(stored);

@@ -1,25 +1,29 @@
 {
   "manifest_version": 3,
-  "name": "Sid Universe Media Bridge",
-  "version": "1.0.0",
-  "description": "Bridges YouTube and YouTube Music playback to Sid Companion for SID UNIVERSE live telemetry.",
+  "name": "Sid Universe — Chrome Activity Bridge",
+  "version": "2.0.0",
+  "description": "Extracts active web, YouTube, and media activity in Google Chrome and streams it to Sid Companion.",
   "permissions": [
-    "tabs"
+    "tabs",
+    "activeTab",
+    "alarms",
+    "storage"
   ],
   "host_permissions": [
-    "https://*.youtube.com/*",
-    "http://127.0.0.1:49152/*"
+    "http://127.0.0.1:49152/*",
+    "https://*/*",
+    "http://*/*"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Sid Universe Media Bridge"
+    "default_title": "Sid Universe Chrome Bridge"
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://www.youtube.com/*",
-        "https://music.youtube.com/*"
-      ],
+      "matches": ["<all_urls>"],
       "js": ["content.js"],
       "run_at": "document_idle"
     }
