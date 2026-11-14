@@ -190,6 +190,13 @@ export interface SiteSettings {
     author: string;
   } | string;
   companionToken?: string;
+  backgroundMusic?: {
+    enabled: boolean;
+    title: string;
+    artist?: string;
+    audioUrl: string;
+    autoplay?: boolean;
+  };
   socialLinks: {
     snapchat?: string;
     discord?: string;

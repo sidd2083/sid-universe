@@ -25,6 +25,7 @@ const currentAppVal = document.getElementById('currentAppVal');
 const currentGameVal = document.getElementById('currentGameVal');
 const currentMusicVal = document.getElementById('currentMusicVal');
 const currentCodingVal = document.getElementById('currentCodingVal');
+const actionBroadcastVal = document.getElementById('actionBroadcastVal');
 const lastSyncLabel = document.getElementById('lastSyncLabel');
 const toast = document.getElementById('toast');
 
@@ -119,6 +120,9 @@ ipcRenderer.on('activity-detected', (_event, data) => {
   currentGameVal.textContent = data.game ? data.game.title : 'None detected';
   currentMusicVal.textContent = data.music ? `${data.music.title} — ${data.music.artist}` : 'Idle';
   currentCodingVal.textContent = data.coding ? `${data.coding.project} (${data.coding.editor})` : 'Idle';
+  if (actionBroadcastVal) {
+    actionBroadcastVal.textContent = data.siddhantAction || 'Active & ready';
+  }
 });
 
 ipcRenderer.on('status-update', (_event, status) => {

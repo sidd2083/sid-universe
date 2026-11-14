@@ -11,6 +11,7 @@ import ProjectsSection from '@/components/home/ProjectsSection';
 import LearningSection from '@/components/home/LearningSection';
 import AnonymousAndQASection from '@/components/home/AnonymousAndQASection';
 import InterestsSection from '@/components/home/InterestsSection';
+import { BackgroundMusicPlayer } from '@/components/home/BackgroundMusicPlayer';
 import {
   universeStore,
   DEFAULT_SETTINGS,
@@ -68,7 +69,28 @@ export default function HomePage() {
     }
 
     window.addEventListener('sid_store_updated', handleUpdate);
-    return () => window.removeEventListener('sid_store_updated', handleUpdate);
+
+    // Live polling for activity every 2.5s
+    let isMounted = true;
+    const pollActivity = async () => {
+      try {
+        const res = await fetch('/api/activity');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && isMounted && data.siddhantAction) {
+            setActivity((prev) => ({ ...prev, ...data }));
+          }
+        }
+      } catch (e) {}
+    };
+    pollActivity();
+    const pollTimer = setInterval(pollActivity, 2500);
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollTimer);
+      window.removeEventListener('sid_store_updated', handleUpdate);
+    };
   }, []);
 
   return (
@@ -153,6 +175,9 @@ export default function HomePage() {
 
       {/* 7. PRIVATE ANONYMOUS INBOX & PUBLISHED Q&A */}
       <AnonymousAndQASection publishedQA={publishedQA} />
+
+      {/* FLOATING BACKGROUND MUSIC PLAYER */}
+      <BackgroundMusicPlayer settings={settings} />
     </div>
   );
 }

@@ -78,6 +78,13 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     facebook: "https://facebook.com/sid",
     github: "https://github.com/sidd2083"
   },
+  backgroundMusic: {
+    enabled: false,
+    title: "Lofi Study Session",
+    artist: "Chilled Beats",
+    audioUrl: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3",
+    autoplay: false
+  },
   companionToken: "sid_universe_secret_token_demo_2026"
 };
 

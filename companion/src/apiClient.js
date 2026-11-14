@@ -74,6 +74,13 @@ class ApiClient {
         throw new Error(errorData.error || `HTTP ${res.status}`);
       }
 
+      // Also broadcast to public activity stream endpoint
+      fetch(`${this.apiUrl}/api/activity`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(activityPayload)
+      }).catch(() => {});
+
       const data = await res.json().catch(() => ({}));
       this.isConnected = true;
       this.lastError = null;

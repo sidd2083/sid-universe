@@ -1,4 +1,4 @@
-const { exec } = require('child_process');
+const { spawn } = require('child_process');
 const os = require('os');
 
 // Supported processes matching user requirements
@@ -11,8 +11,7 @@ const KNOWN_GAMES = [
   { process: 'cs2', name: 'Counter-Strike 2', category: 'Competitive FPS' },
   { process: 'csgo', name: 'Counter-Strike 2', category: 'Competitive FPS' },
   { process: 'valorant', name: 'Valorant', category: 'Tactical Shooter' },
-  { process: 'cyberpunk2077', name: 'Cyberpunk 2077', category: 'RPG' },
-  { process: 'steam', name: 'Steam Gaming', category: 'Platform' }
+  { process: 'cyberpunk2077', name: 'Cyberpunk 2077', category: 'RPG' }
 ];
 
 const KNOWN_CREATIVE = [
@@ -48,17 +47,29 @@ class ActivityDetector {
         return resolve(this.formatResult(null, null, null, null, this.browserReportedTab));
       }
 
-      // Safe Windows process enumeration without dropping processes lacking MainWindowTitle
-      const psCommand = `powershell -NoProfile -Command "Get-Process | Select-Object ProcessName, MainWindowTitle | ConvertTo-Json -Compress"`;
+      let stdout = '';
+      const ps = spawn('powershell.exe', [
+        '-NoProfile',
+        '-Command',
+        'Get-Process | Select-Object ProcessName, MainWindowTitle | ConvertTo-Json -Compress'
+      ], { timeout: 6000 });
 
-      exec(psCommand, { timeout: 4000 }, (err, stdout) => {
+      ps.stdout.on('data', (chunk) => {
+        stdout += chunk.toString();
+      });
+
+      ps.on('error', () => {
+        resolve(this.formatResult(null, null, null, null, null));
+      });
+
+      ps.on('close', () => {
         let detectedGame = null;
         let detectedCoding = null;
         let detectedMusic = null;
         let detectedApp = null;
         let appDetails = null;
 
-        if (!err && stdout && stdout.trim()) {
+        if (stdout && stdout.trim()) {
           try {
             let processes = JSON.parse(stdout.trim());
             if (!Array.isArray(processes)) {
@@ -84,7 +95,7 @@ class ActivityDetector {
               }
 
               // 2. Check Creative & Coding
-              if (pName.includes('code')) {
+              if (pName.includes('code') && !detectedCoding) {
                 let project = 'StudentHub Nepal';
                 let file = 'Workspace';
                 if (wTitle.includes('Visual Studio Code')) {
@@ -102,7 +113,7 @@ class ActivityDetector {
                   detectedApp = 'Visual Studio Code';
                   appDetails = `Coding ${project.trim()}`;
                 }
-              } else if (pName.includes('blender')) {
+              } else if (pName.includes('blender') && !detectedCoding) {
                 detectedCoding = {
                   project: '3D Project',
                   file: 'Scene.blend',
@@ -113,7 +124,7 @@ class ActivityDetector {
                   detectedApp = 'Blender';
                   appDetails = '3D Modeling';
                 }
-              } else if (pName.includes('photoshop')) {
+              } else if (pName.includes('photoshop') && !detectedCoding) {
                 detectedCoding = {
                   project: 'Design Workspace',
                   file: 'Asset.psd',
@@ -130,7 +141,8 @@ class ActivityDetector {
               if (
                 pName.includes('spotify') &&
                 wTitle &&
-                !['Spotify', 'Spotify Free', 'Spotify Premium'].includes(wTitle)
+                !['Spotify', 'Spotify Free', 'Spotify Premium'].includes(wTitle) &&
+                !detectedMusic
               ) {
                 const parts = wTitle.split(' - ');
                 if (parts.length >= 2) {
@@ -152,8 +164,8 @@ class ActivityDetector {
           }
         }
 
-        // 4. Browser reported activity (YouTube, Media, or Web browsing from Chrome extension)
-        const isBrowserRecent = this.browserReportedTab && (Date.now() - this.browserReportedTab.timestamp < 45000);
+        // 4. Browser reported activity (from Chrome extension)
+        const isBrowserRecent = this.browserReportedTab && (Date.now() - this.browserReportedTab.timestamp < 60000);
         if (isBrowserRecent && this.browserReportedTab.title) {
           const tab = this.browserReportedTab;
           const cleanTitle = (tab.title || '').trim();
@@ -193,7 +205,7 @@ class ActivityDetector {
     this.lastDetectedApp = app;
 
     // Track active application and duration
-    const currentIdentity = app || (this.browserReportedTab?.title ? 'Google Chrome' : 'Idle');
+    const currentIdentity = app || (this.browserReportedTab?.title ? 'Google Chrome' : 'Exploring');
     if (this.currentActiveApp !== currentIdentity) {
       this.currentActiveApp = currentIdentity;
       this.activeAppStartTime = Date.now();

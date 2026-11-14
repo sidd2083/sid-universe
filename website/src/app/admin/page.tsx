@@ -25,7 +25,10 @@ import {
   Send,
   Eye,
   EyeOff,
-  Copy
+  Copy,
+  Volume2,
+  Play,
+  Pause
 } from 'lucide-react';
 import {
   universeStore,
@@ -235,6 +238,129 @@ export default function AdminPage() {
     }
   };
 
+  // 7. Games CRUD
+  const handleAddGame = () => {
+    const newGame: Game = {
+      id: `game-${Date.now()}`,
+      title: 'New Game Title',
+      platform: 'PC',
+      genre: 'Action Adventure',
+      description: 'Why I play it and what makes it special.',
+      hoursPlayed: 10,
+      memories: 'Memorable moment playing with friends.',
+      isCurrentlyPlaying: true,
+      order: games.length + 1
+    };
+    const updated = [newGame, ...games];
+    setGames(updated);
+    universeStore.set('games', updated);
+    notify('New game added.');
+  };
+
+  const handleUpdateGame = (id: string, updates: Partial<Game>) => {
+    const updated = games.map((g) => (g.id === id ? { ...g, ...updates } : g));
+    setGames(updated);
+    universeStore.set('games', updated);
+    notify('Game updated.');
+  };
+
+  const handleDeleteGame = (id: string) => {
+    if (confirm('Delete this game?')) {
+      const updated = games.filter((g) => g.id !== id);
+      setGames(updated);
+      universeStore.set('games', updated);
+      notify('Game deleted.');
+    }
+  };
+
+  // 8. Songs CRUD
+  const handleAddSong = () => {
+    const newSong: Song = {
+      id: `song-${Date.now()}`,
+      title: 'New Track Title',
+      artist: 'Artist Name',
+      album: 'Album / Single',
+      spotifyUrl: 'https://open.spotify.com/',
+      genre: 'Soundtrack',
+      featured: true,
+      order: songs.length + 1
+    };
+    const updated = [newSong, ...songs];
+    setSongs(updated);
+    universeStore.set('songs', updated);
+    notify('New song added.');
+  };
+
+  const handleUpdateSong = (id: string, updates: Partial<Song>) => {
+    const updated = songs.map((s) => (s.id === id ? { ...s, ...updates } : s));
+    setSongs(updated);
+    universeStore.set('songs', updated);
+    notify('Song updated.');
+  };
+
+  const handleDeleteSong = (id: string) => {
+    if (confirm('Delete this song?')) {
+      const updated = songs.filter((s) => s.id !== id);
+      setSongs(updated);
+      universeStore.set('songs', updated);
+      notify('Song deleted.');
+    }
+  };
+
+  // 9. Watchlist CRUD
+  const handleAddWatchlist = () => {
+    const newItem: WatchlistItem = {
+      id: `watch-${Date.now()}`,
+      title: 'Movie or Anime Title',
+      type: 'Anime',
+      category: 'Cinema',
+      status: 'Watching',
+      rating: 9,
+      thoughts: 'Thoughts on the story and visuals.',
+      sourceUrl: '',
+      description: 'Overview',
+      order: watchlist.length + 1
+    };
+    const updated = [newItem, ...watchlist];
+    setWatchlist(updated);
+    universeStore.set('watchlist', updated);
+    notify('New watchlist item added.');
+  };
+
+  const handleUpdateWatchlist = (id: string, updates: Partial<WatchlistItem>) => {
+    const updated = watchlist.map((w) => (w.id === id ? { ...w, ...updates } : w));
+    setWatchlist(updated);
+    universeStore.set('watchlist', updated);
+    notify('Watchlist item updated.');
+  };
+
+  const handleDeleteWatchlist = (id: string) => {
+    if (confirm('Delete this watchlist item?')) {
+      const updated = watchlist.filter((w) => w.id !== id);
+      setWatchlist(updated);
+      universeStore.set('watchlist', updated);
+      notify('Watchlist item deleted.');
+    }
+  };
+
+  // 10. Background Music Configuration
+  const handleSaveBackgroundMusic = (updates: Partial<NonNullable<SiteSettings['backgroundMusic']>>) => {
+    const updatedMusic = {
+      ...(settings.backgroundMusic || {
+        enabled: false,
+        title: 'Atmospheric Track',
+        artist: '',
+        audioUrl: '',
+        autoplay: false
+      }),
+      ...updates
+    };
+    const newSettings = { ...settings, backgroundMusic: updatedMusic };
+    setSettings(newSettings);
+    universeStore.set('siteSettings', newSettings);
+    notify('Background music settings updated.');
+  };
+
   const navItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'profile', label: 'Profile & Bio', icon: User },
@@ -245,6 +371,7 @@ export default function AdminPage() {
     { id: 'projects', label: 'Projects (All)', icon: FolderKanban },
     { id: 'learning', label: 'Learning & Exploring', icon: BookOpen },
     { id: 'interests', label: 'Gaming, Music & Watchlist', icon: Gamepad2 },
+    { id: 'backgroundMusic', label: 'Background Music', icon: Music },
     { id: 'inbox', label: 'Anonymous Inbox & Q&A', icon: MessageSquare },
     { id: 'companion', label: 'Companion Token', icon: Cpu },
     { id: 'settings', label: 'Settings', icon: Settings },
@@ -870,6 +997,379 @@ export default function AdminPage() {
                     </button>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* 8.5. GAMING, MUSIC & WATCHLIST (INTERESTS) */}
+          {activeTab === 'interests' && (
+            <div className="space-y-8">
+              {/* GAMES MANAGER */}
+              <div className="apple-card p-6 sm:p-8 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-bold text-warm-text flex items-center gap-2">
+                      <Gamepad2 size={18} className="text-emerald-600" />
+                      <span>Gaming Space ({games.length})</span>
+                    </h2>
+                    <p className="text-xs text-warm-secondary mt-0.5">
+                      PC games, hours played, personal memories, and favorite titles.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleAddGame}
+                    className="px-3.5 py-1.5 rounded-xl bg-warm-text text-white text-xs font-medium hover:bg-black transition flex items-center gap-1.5 shadow-apple-sm"
+                  >
+                    <Plus size={13} />
+                    <span>Add Game</span>
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {games.map((game) => (
+                    <div
+                      key={game.id}
+                      className="p-5 rounded-2xl bg-warm-subtle/80 border border-warm-border space-y-3"
+                    >
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
+                          <input
+                            type="text"
+                            value={game.title}
+                            onChange={(e) => handleUpdateGame(game.id, { title: e.target.value })}
+                            placeholder="Game Title"
+                            className="rounded-lg bg-warm-surface border border-warm-border px-3 py-1.5 text-xs text-warm-text font-bold"
+                          />
+                          <select
+                            value={game.platform}
+                            onChange={(e) => handleUpdateGame(game.id, { platform: e.target.value as any })}
+                            className="rounded-lg bg-warm-surface border border-warm-border px-2.5 py-1.5 text-xs text-warm-text"
+                          >
+                            <option value="PC">PC</option>
+                            <option value="Cross-Platform">Cross-Platform</option>
+                          </select>
+                          <input
+                            type="number"
+                            value={game.hoursPlayed || 0}
+                            onChange={(e) => handleUpdateGame(game.id, { hoursPlayed: parseInt(e.target.value) || 0 })}
+                            placeholder="Hours Played"
+                            className="rounded-lg bg-warm-surface border border-warm-border px-3 py-1.5 text-xs text-warm-text"
+                          />
+                        </div>
+
+                        <button
+                          onClick={() => handleDeleteGame(game.id)}
+                          className="p-1.5 rounded-lg text-warm-muted hover:text-red-600 transition shrink-0"
+                          title="Delete Game"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          value={game.description || ''}
+                          onChange={(e) => handleUpdateGame(game.id, { description: e.target.value })}
+                          placeholder="Description / Why I play it"
+                          className="w-full rounded-lg bg-warm-surface border border-warm-border px-3 py-1.5 text-xs text-warm-secondary"
+                        />
+                        <input
+                          type="text"
+                          value={game.memories || ''}
+                          onChange={(e) => handleUpdateGame(game.id, { memories: e.target.value })}
+                          placeholder="Favorite Memory / Story"
+                          className="w-full rounded-lg bg-warm-surface border border-warm-border px-3 py-1.5 text-xs text-warm-secondary italic"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* MUSIC MANAGER */}
+              <div className="apple-card p-6 sm:p-8 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-bold text-warm-text flex items-center gap-2">
+                      <Music size={18} className="text-amber-600" />
+                      <span>Favorite Music & Tracks ({songs.length})</span>
+                    </h2>
+                    <p className="text-xs text-warm-secondary mt-0.5">
+                      Rotations, soundtrack favorites, and Spotify URLs.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleAddSong}
+                    className="px-3.5 py-1.5 rounded-xl bg-warm-text text-white text-xs font-medium hover:bg-black transition flex items-center gap-1.5 shadow-apple-sm"
+                  >
+                    <Plus size={13} />
+                    <span>Add Track</span>
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {songs.map((song) => (
+                    <div
+                      key={song.id}
+                      className="p-4 rounded-xl bg-warm-subtle/80 border border-warm-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+                    >
+                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
+                        <input
+                          type="text"
+                          value={song.title}
+                          onChange={(e) => handleUpdateSong(song.id, { title: e.target.value })}
+                          placeholder="Track Title"
+                          className="rounded-lg bg-warm-surface border border-warm-border px-3 py-1.5 text-xs text-warm-text font-bold"
+                        />
+                        <input
+                          type="text"
+                          value={song.artist}
+                          onChange={(e) => handleUpdateSong(song.id, { artist: e.target.value })}
+                          placeholder="Artist"
+                          className="rounded-lg bg-warm-surface border border-warm-border px-3 py-1.5 text-xs text-warm-secondary"
+                        />
+                        <input
+                          type="text"
+                          value={song.spotifyUrl || ''}
+                          onChange={(e) => handleUpdateSong(song.id, { spotifyUrl: e.target.value })}
+                          placeholder="Spotify URL (https://...)"
+                          className="rounded-lg bg-warm-surface border border-warm-border px-3 py-1.5 text-xs text-warm-secondary"
+                        />
+                      </div>
+
+                      <button
+                        onClick={() => handleDeleteSong(song.id)}
+                        className="p-1.5 rounded-lg text-warm-muted hover:text-red-600 transition shrink-0"
+                        title="Delete Track"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* WATCHLIST MANAGER */}
+              <div className="apple-card p-6 sm:p-8 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-bold text-warm-text flex items-center gap-2">
+                      <Film size={18} className="text-sky-600" />
+                      <span>Watchlist & Cinema ({watchlist.length})</span>
+                    </h2>
+                    <p className="text-xs text-warm-secondary mt-0.5">
+                      Anime, cinema, series, and reviews.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleAddWatchlist}
+                    className="px-3.5 py-1.5 rounded-xl bg-warm-text text-white text-xs font-medium hover:bg-black transition flex items-center gap-1.5 shadow-apple-sm"
+                  >
+                    <Plus size={13} />
+                    <span>Add Item</span>
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {watchlist.map((item) => (
+                    <div
+                      key={item.id}
+                      className="p-5 rounded-2xl bg-warm-subtle/80 border border-warm-border space-y-3"
+                    >
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-4 gap-2 w-full">
+                          <input
+                            type="text"
+                            value={item.title}
+                            onChange={(e) => handleUpdateWatchlist(item.id, { title: e.target.value })}
+                            placeholder="Title"
+                            className="rounded-lg bg-warm-surface border border-warm-border px-3 py-1.5 text-xs text-warm-text font-bold"
+                          />
+                          <select
+                            value={item.type || 'Anime'}
+                            onChange={(e) => handleUpdateWatchlist(item.id, { type: e.target.value })}
+                            className="rounded-lg bg-warm-surface border border-warm-border px-2.5 py-1.5 text-xs text-warm-text"
+                          >
+                            <option value="Anime">Anime</option>
+                            <option value="Movie">Movie</option>
+                            <option value="Series">Series</option>
+                            <option value="Documentary">Documentary</option>
+                          </select>
+                          <select
+                            value={item.status || 'Watching'}
+                            onChange={(e) => handleUpdateWatchlist(item.id, { status: e.target.value })}
+                            className="rounded-lg bg-warm-surface border border-warm-border px-2.5 py-1.5 text-xs text-warm-text"
+                          >
+                            <option value="Watching">Watching</option>
+                            <option value="To Watch">To Watch</option>
+                            <option value="Completed">Completed</option>
+                          </select>
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] text-warm-muted">Rating:</span>
+                            <input
+                              type="number"
+                              min={1}
+                              max={10}
+                              value={item.rating || 9}
+                              onChange={(e) => handleUpdateWatchlist(item.id, { rating: parseInt(e.target.value) || 9 })}
+                              className="w-16 rounded-lg bg-warm-surface border border-warm-border px-2 py-1 text-xs text-warm-text font-bold"
+                            />
+                            <span className="text-[10px] text-warm-muted">/10</span>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => handleDeleteWatchlist(item.id)}
+                          className="p-1.5 rounded-lg text-warm-muted hover:text-red-600 transition shrink-0"
+                          title="Delete Watchlist Item"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+
+                      <div>
+                        <input
+                          type="text"
+                          value={item.thoughts || ''}
+                          onChange={(e) => handleUpdateWatchlist(item.id, { thoughts: e.target.value })}
+                          placeholder="Your review / thoughts on this show or movie"
+                          className="w-full rounded-lg bg-warm-surface border border-warm-border px-3 py-1.5 text-xs text-warm-secondary italic"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* BACKGROUND MUSIC CONFIGURATION */}
+          {activeTab === 'backgroundMusic' && (
+            <div className="apple-card p-6 sm:p-8 space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-warm-border">
+                <div>
+                  <h2 className="text-lg font-bold text-warm-text flex items-center gap-2">
+                    <Music size={20} className="text-amber-600" />
+                    <span>Website Background Music</span>
+                  </h2>
+                  <p className="text-xs text-warm-secondary mt-1">
+                    Play a relaxing ambient soundtrack or song for visitors with pause/play controls.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => notify('Background music settings saved.')}
+                  className="px-4 py-2 rounded-xl bg-warm-text text-white text-xs font-medium hover:bg-black transition flex items-center gap-2 shadow-apple-sm"
+                >
+                  <Save size={14} />
+                  <span>Save All Settings</span>
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Master Enable Toggle */}
+                <div className="flex items-center justify-between p-4 rounded-xl bg-warm-subtle/80 border border-warm-border">
+                  <div>
+                    <span className="text-sm font-semibold text-warm-text block">
+                      Enable Background Music on Website
+                    </span>
+                    <p className="text-xs text-warm-secondary mt-0.5">
+                      When enabled, a minimal Apple-style floating audio pill appears on the site with play/pause controls.
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.backgroundMusic?.enabled || false}
+                      onChange={(e) => handleSaveBackgroundMusic({ enabled: e.target.checked })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-warm-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+                  </label>
+                </div>
+
+                {/* Track Details */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-warm-text">Track Title</label>
+                    <input
+                      type="text"
+                      value={settings.backgroundMusic?.title || ''}
+                      onChange={(e) => handleSaveBackgroundMusic({ title: e.target.value })}
+                      placeholder="e.g. Lofi Study Session / Interstellar Theme"
+                      className="w-full rounded-xl bg-warm-surface border border-warm-border px-3.5 py-2.5 text-xs text-warm-text font-medium"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-warm-text">Artist / Creator</label>
+                    <input
+                      type="text"
+                      value={settings.backgroundMusic?.artist || ''}
+                      onChange={(e) => handleSaveBackgroundMusic({ artist: e.target.value })}
+                      placeholder="e.g. Chilled Beats / Hans Zimmer"
+                      className="w-full rounded-xl bg-warm-surface border border-warm-border px-3.5 py-2.5 text-xs text-warm-text"
+                    />
+                  </div>
+                </div>
+
+                {/* Audio URL */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-warm-text">
+                    Audio File / Stream URL (Direct .mp3, .ogg, or audio link)
+                  </label>
+                  <input
+                    type="url"
+                    value={settings.backgroundMusic?.audioUrl || ''}
+                    onChange={(e) => handleSaveBackgroundMusic({ audioUrl: e.target.value })}
+                    placeholder="https://example.com/audio/song.mp3"
+                    className="w-full rounded-xl bg-warm-surface border border-warm-border px-3.5 py-2.5 text-xs font-mono text-warm-text"
+                  />
+                  <p className="text-[11px] text-warm-muted">
+                    Supports any direct audio URL (MP3, OGG, WAV). You can host files on GitHub Releases, Cloudflare R2, Pixabay, or personal CDN.
+                  </p>
+                </div>
+
+                {/* Autoplay setting */}
+                <div className="flex items-center justify-between p-4 rounded-xl bg-warm-subtle/80 border border-warm-border">
+                  <div>
+                    <span className="text-xs font-semibold text-warm-text block">
+                      Attempt Autoplay
+                    </span>
+                    <p className="text-[11px] text-warm-secondary mt-0.5">
+                      Attempts playback on site load (modern browsers automatically prompt user interaction first if restricted).
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.backgroundMusic?.autoplay || false}
+                      onChange={(e) => handleSaveBackgroundMusic({ autoplay: e.target.checked })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-warm-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+                  </label>
+                </div>
+
+                {/* Live Audio Preview */}
+                {settings.backgroundMusic?.audioUrl && (
+                  <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-200/60 space-y-2">
+                    <span className="text-xs font-semibold text-amber-900 block flex items-center gap-1.5">
+                      <Volume2 size={14} className="text-amber-700" />
+                      Live Audio Test in Admin:
+                    </span>
+                    <audio
+                      controls
+                      src={settings.backgroundMusic.audioUrl}
+                      className="w-full h-9 rounded-lg"
+                      preload="none"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}
