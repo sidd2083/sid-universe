@@ -85,7 +85,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     audioUrl: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3",
     autoplay: false
   },
-  companionToken: "sid_universe_secret_token_demo_2026"
+  companionToken: ""
 };
 
 export const DEFAULT_PROJECTS: Project[] = [

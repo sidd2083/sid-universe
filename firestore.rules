@@ -11,70 +11,97 @@ rules_version = '2';
 //     locationCity, clockFormat, greetings, currentProject, philosophicalQuote,
 //     footerQuote, learningDisclaimer, socialLinks, backgroundMusic,
 //     companionToken, updatedAt (timestamp/string)
+// Read: Public (true)
+// Write: Admin only (isAdmin())
 //
 // Collection: publicActivity
 // Document ID: {docId} (e.g. 'current')
 // Fields:
-//   - currentApp, currentWindow, device, status, category, lastActive,
-//     battery, uptime, os, updatedAt
+//   - isOnline, siddhantAction, appName, appDetails, durationMinutes,
+//     currentActivityLabel, currentGame, currentCoding, currentMusic,
+//     lastHeartbeat, lastActive, updatedAt
+// Read: Public (true)
+// Write: Public (true - for Companion Daemon & live web telemetry)
 //
 // Collection: projects
-// Document ID: {projectId} (e.g. 'proj-1')
+// Document ID: {projectId} (e.g. 'student-hub-nepal')
 // Fields:
 //   - id, title, description, longDescription, personalStory, category,
 //     technologies, status, liveUrl, githubUrl, coverImage, screenshots,
 //     featured, order, startDate, updatedAt
+// Read: Public (true)
+// Write: Admin only (isAdmin())
 //
 // Collection: learningTopics
 // Document ID: {topicId} (e.g. 'topic-1')
 // Fields:
-//   - id, title/name, category, status, progress, notes, resources,
-//     priority, order, updatedAt
+//   - id, title, categoryType, category, description, progress, order,
+//     status, notes, resources, featured, updatedAt
+// Read: Public (true)
+// Write: Admin only (isAdmin())
 //
 // Collection: games
 // Document ID: {gameId} (e.g. 'game-1')
 // Fields:
-//   - id, title, genre, platform, status, playtimeHours, rating, review,
-//     imageUrl, steamUrl, favorite, updatedAt
+//   - id, title, platform, genre, description, hoursPlayed, memories,
+//     isCurrentlyPlaying, order, achievements, updatedAt
+// Read: Public (true)
+// Write: Admin only (isAdmin())
 //
 // Collection: songs
 // Document ID: {songId} (e.g. 'song-1')
 // Fields:
-//   - id, title, artist, album, duration, audioUrl, coverUrl, genre,
-//     favorite, platform, streamUrl, updatedAt
+//   - id, title, artist, album, spotifyUrl, genre, featured, order, updatedAt
+// Read: Public (true)
+// Write: Admin only (isAdmin())
 //
 // Collection: playlists
 // Document ID: {playlistId} (e.g. 'playlist-1')
 // Fields:
-//   - id, name, description, coverUrl, songIds, trackCount, order, updatedAt
+//   - id, title, description, spotifyUrl, trackCount, order, updatedAt
+// Read: Public (true)
+// Write: Admin only (isAdmin())
 //
 // Collection: watchlist
 // Document ID: {itemId} (e.g. 'watch-1')
 // Fields:
-//   - id, title, type (movie/series/anime), status, rating, review,
-//     imageUrl, genre, releaseYear, episodesWatched, totalEpisodes, updatedAt
+//   - id, title, description, sourceUrl, category, type, rating,
+//     thoughts, status, order, updatedAt
+// Read: Public (true)
+// Write: Admin only (isAdmin())
 //
 // Collection: publishedQA
 // Document ID: {qaId} (e.g. 'qa-1')
 // Fields:
-//   - id, question, answer, askedBy, answeredAt, category, pinned, updatedAt
-//
-// Collection: anonymousMessages
-// Document ID: {msgId} (auto-generated)
-// Fields:
-//   - content/message (string), senderName (string, optional),
-//     senderEmail (string, optional), createdAt (timestamp),
-//     isRead (bool), isPublished (bool), isArchived (bool)
+//   - id, messageId, question, reply, publishedAt, category, updatedAt
+// Read: Public (true)
+// Write: Admin only (isAdmin())
 //
 // Collection: touches
 // Document ID: {touchId} (auto-generated)
 // Fields:
-//   - message/type, timestamp, senderIp/clientInfo, createdAt
+//   - emoji (string, <= 30 chars), senderName (string, <= 100 chars),
+//     message (string, <= 500 chars), timestamp, isRead (bool), createdAt
+// Read: Public (true)
+// Create: Public (true with validation)
+// Update/Delete: Admin only (isAdmin())
+//
+// Collection: anonymousMessages
+// Document ID: {msgId} (auto-generated)
+// Fields:
+//   - content/message (string, 1-5000 chars), senderName (string, optional),
+//     senderEmail (string, optional), createdAt (timestamp),
+//     isRead (bool), isPublished (bool), isArchived (bool)
+// Read: Admin only (isAdmin() - private visitor messages to Sid)
+// Create: Public (if content/message is string)
+// Update/Delete: Admin only (isAdmin())
 //
 // Collection: admins
 // Document ID: {adminId} (email or UID)
 // Fields:
-//   - email, isAdmin (bool), role, updatedAt
+//   - email (string), isAdmin (bool), authorizedAt (string/timestamp)
+// Read: Admin only (isAdmin())
+// Write: Admin only (isAdmin() - prevents unauthorized privilege escalation)
 //
 // ===============================================================
 
@@ -85,34 +112,67 @@ service cloud.firestore {
     // Helper Functions
     // ===============================================================
 
+    // Check if the request is authenticated with Firebase Auth
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    function isKnownAdminEmail() {
+    // Safely check if the authenticated token includes a valid email string
+    function hasEmail() {
       return isAuthenticated() &&
-        request.auth.token.email != null &&
-        (
-          request.auth.token.email in ['sidd2083@gmail.com', 'sidhoni@gmail.com', 'sid@siduniverse.dev'] ||
-          request.auth.token.email.matches('.*sidd2083.*') ||
-          request.auth.token.email.matches('.*sidhoni.*')
-        );
+        request.auth.token != null &&
+        ('email' in request.auth.token) &&
+        request.auth.token.email is string;
     }
 
-    function isAdmin() {
+    // Verify if the authenticated user's email belongs to Siddhant's official admin emails
+    function isKnownAdminEmail() {
+      return hasEmail() && (
+        request.auth.token.email in ['sidd2083@gmail.com', 'sidhoni@gmail.com', 'sid@siduniverse.dev'] ||
+        request.auth.token.email.matches('.*sidd2083.*') ||
+        request.auth.token.email.matches('.*sidhoni.*')
+      );
+    }
+
+    // Check if the user is registered in the admins collection (by email or UID)
+    function isWhitelistedInAdminsCollection() {
       return isAuthenticated() && (
-        isKnownAdminEmail() ||
-        request.auth.token.admin == true ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) ||
+        (hasEmail() && exists(/databases/$(database)/documents/admins/$(request.auth.token.email))) ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
     }
 
-    // Helper to validate anonymous message payload
+    // Check if the user has an admin custom claim
+    function hasAdminCustomClaim() {
+      return isAuthenticated() &&
+        request.auth.token != null &&
+        ('admin' in request.auth.token) &&
+        request.auth.token.admin == true;
+    }
+
+    // Comprehensive Admin Authorization Check
+    function isAdmin() {
+      return isAuthenticated() && (
+        isKnownAdminEmail() ||
+        isWhitelistedInAdminsCollection() ||
+        hasAdminCustomClaim()
+      );
+    }
+
+    // Domain Validator: Anonymous Message payload validation & DoS prevention
     function isValidAnonymousMessage() {
       return (
         ('content' in request.resource.data && request.resource.data.content is string && request.resource.data.content.size() > 0 && request.resource.data.content.size() <= 5000) ||
         ('message' in request.resource.data && request.resource.data.message is string && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 5000)
+      );
+    }
+
+    // Domain Validator: Touch ping validation & bounds
+    function isValidTouch() {
+      return (
+        (!('message' in request.resource.data) || (request.resource.data.message is string && request.resource.data.message.size() <= 500)) &&
+        (!('emoji' in request.resource.data) || (request.resource.data.emoji is string && request.resource.data.emoji.size() <= 30)) &&
+        (!('senderName' in request.resource.data) || (request.resource.data.senderName is string && request.resource.data.senderName.size() <= 100))
       );
     }
 
@@ -123,7 +183,7 @@ service cloud.firestore {
     // 1. Site Settings (General, Appearance, Background Music, Quotes, Nav)
     match /siteSettings/{settingId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isAdmin();
     }
 
     // 2. Public Activity (Real-time telemetry from Companion Daemon & Website)
@@ -132,75 +192,80 @@ service cloud.firestore {
       allow write: if true;
     }
 
-    // 3. Projects Showcase (StudentHub Nepal, GSConfession, etc.)
+    // 3. Projects Showcase
     match /projects/{projectId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isAdmin();
     }
 
     // 4. Learning & Exploring Topics
     match /learningTopics/{topicId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isAdmin();
     }
 
     // 5. Games & Gaming History
     match /games/{gameId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isAdmin();
     }
 
     // 6. Favorite Songs & Music Playlists
     match /songs/{songId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isAdmin();
     }
 
     match /playlists/{playlistId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isAdmin();
     }
 
     // 7. Watchlist & Reviews (Movies, Anime, Series)
     match /watchlist/{itemId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isAdmin();
     }
 
     // 8. Published Q&A
     match /publishedQA/{qaId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isAdmin();
     }
 
-    // 9. Anonymous Messages (Public creation, read/moderation)
-    match /anonymousMessages/{msgId} {
-      allow read: if true;
-      allow create: if isValidAnonymousMessage() || true;
-      allow update, delete: if true;
-    }
-
-    // 10. Touches (Send a Touch to Sid from Website)
+    // 9. Touches (Live ping to Sid from Website)
     match /touches/{touchId} {
       allow read: if true;
-      allow write: if true;
+      allow create: if isValidTouch();
+      allow update, delete: if isAdmin();
+    }
+
+    // 10. Anonymous Messages (Private feedback/messages submitted to Sid)
+    match /anonymousMessages/{msgId} {
+      allow create: if isValidAnonymousMessage();
+      allow read, update, delete: if isAdmin();
     }
 
     // 11. Admin Registry & Whitelist
     match /admins/{adminId} {
-      allow read: if true;
-      allow write: if true;
+      allow read: if isAdmin();
+      allow write: if isAdmin();
     }
 
-    // 12. Backward compatibility (Legacy collections)
+    // 12. Backward Compatibility (Legacy Collections)
     match /planets/{planetId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isAdmin();
     }
 
     match /timeline/{timelineId} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isAdmin();
+    }
+
+    // 13. Default Deny Rule for any unspecified document paths
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

@@ -32,7 +32,9 @@ import {
   Upload,
   FileAudio
 } from 'lucide-react';
-import { storage } from '@/lib/firebase';
+import { auth, storage } from '@/lib/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { isAuthorizedAdminEmail } from '@/lib/authGuard';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import {
   universeStore,
@@ -63,6 +65,8 @@ export default function AdminPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [notification, setNotification] = useState<string>('');
+  const [authorized, setAuthorized] = useState<boolean>(false);
+  const [adminEmail, setAdminEmail] = useState<string>('');
 
   // State
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
@@ -79,14 +83,25 @@ export default function AdminPage() {
   const [replyMessageId, setReplyMessageId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState<string>('');
 
-  // Authentication check
+  // Strict Authentication check
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const session = sessionStorage.getItem('sid_admin_session');
-      if (!session) {
-        router.push('/admin/login');
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user || !user.email || !isAuthorizedAdminEmail(user.email)) {
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('sid_admin_session');
+        }
+        await signOut(auth).catch(() => {});
+        router.replace('/admin/login');
+      } else {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('sid_admin_session', user.email.toLowerCase().trim());
+        }
+        setAdminEmail(user.email);
+        setAuthorized(true);
       }
-    }
+    });
+
+    return () => unsubscribe();
   }, [router]);
 
   // Load from store
@@ -107,11 +122,14 @@ export default function AdminPage() {
     setTimeout(() => setNotification(''), 3000);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('sid_admin_session');
     }
-    router.push('/admin/login');
+    try {
+      await signOut(auth);
+    } catch {}
+    router.replace('/admin/login');
   };
 
   // 1. Save Settings & Profile
@@ -438,13 +456,24 @@ export default function AdminPage() {
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
+  if (!authorized) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-10 h-10 border-2 border-warm-border border-t-warm-text rounded-full animate-spin mb-4" />
+        <p className="text-xs font-mono text-warm-secondary uppercase tracking-wider">
+          Verifying Administrator Privileges...
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 min-h-screen">
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-warm-border/70 mb-8">
         <div>
           <span className="text-xs font-mono uppercase tracking-wider text-warm-muted">
-            Private Administration
+            Private Administration {adminEmail ? `· ${adminEmail}` : ''}
           </span>
           <h1 className="text-2xl font-bold tracking-tight text-warm-text">
             Management Dashboard

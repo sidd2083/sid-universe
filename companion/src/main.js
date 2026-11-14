@@ -13,7 +13,7 @@ let isQuitting = false;
 const CONFIG_PATH = path.join(app.getPath('userData'), 'sid-companion-config.json');
 let config = {
   apiUrl: 'http://localhost:3000',
-  apiToken: 'sid_universe_secret_token_demo_2026',
+  apiToken: '',
   shareActivity: true, // Master Switch
   shareBrowser: true,
   shareGaming: true,
