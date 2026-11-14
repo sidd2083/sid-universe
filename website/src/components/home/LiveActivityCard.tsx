@@ -51,8 +51,8 @@ export default function LiveActivityCard({ activity }: Props) {
   }
 
   return (
-    <div className="w-full max-w-xl mx-auto rounded-full bg-warm-surface/95 hover:bg-warm-surface border border-warm-border/90 px-5 py-3 text-center flex flex-col sm:flex-row items-center justify-between gap-3 shadow-apple-sm hover:shadow-apple-md transition duration-300">
-      <div className="flex items-center gap-3 min-w-0">
+    <div className="w-full max-w-xl mx-auto rounded-2xl sm:rounded-full bg-warm-surface/95 hover:bg-warm-surface border border-warm-border/90 px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-3 shadow-apple-sm hover:shadow-apple-md transition duration-300">
+      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 overflow-hidden">
         {/* Status dot & icon */}
         <div className="relative shrink-0 flex items-center">
           <span
@@ -65,17 +65,17 @@ export default function LiveActivityCard({ activity }: Props) {
           </div>
         </div>
 
-        {/* Action sentence */}
-        <p className="text-xs sm:text-sm font-semibold text-warm-text leading-snug truncate text-center sm:text-left">
+        {/* Action sentence — truncated on mobile, wraps on desktop */}
+        <p className="text-[11px] sm:text-sm font-semibold text-warm-text leading-snug truncate text-left">
           {actionText}
         </p>
       </div>
 
       {/* Elapsed badge */}
       {activity.durationMinutes && isOnline && (
-        <span className="text-[10px] font-mono font-medium text-warm-secondary bg-warm-subtle/80 px-2.5 py-1 rounded-full border border-warm-border/60 shrink-0 flex items-center gap-1">
+        <span className="text-[10px] font-mono font-medium text-warm-secondary bg-warm-subtle/80 px-2 sm:px-2.5 py-1 rounded-full border border-warm-border/60 shrink-0 hidden sm:flex items-center gap-1">
           <Clock size={10} className="text-warm-muted" />
-          <span>Active for {activity.durationMinutes}m</span>
+          <span>{activity.durationMinutes}m</span>
         </span>
       )}
     </div>

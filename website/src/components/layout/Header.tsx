@@ -7,7 +7,6 @@ import {
   Menu,
   X,
   MapPin,
-  CloudSun,
   CloudRain,
   Moon,
   Sun
@@ -60,13 +59,23 @@ export default function Header() {
     { label: 'Priv MSG', href: '/anonymous-messages' },
   ];
 
+  /* Build social links array to render in both desktop & mobile */
+  const socialEntries = [
+    { key: 'discord', url: socials.discord, Icon: DiscordIcon, color: 'hover:text-[#5865F2]', label: 'Discord' },
+    { key: 'steam', url: socials.steam, Icon: SteamIcon, color: 'hover:text-[#171A21]', label: 'Steam' },
+    { key: 'youtube', url: socials.youtube, Icon: YouTubeIcon, color: 'hover:text-[#FF0000]', label: 'YouTube' },
+    { key: 'snapchat', url: socials.snapchat, Icon: SnapchatIcon, color: 'hover:text-amber-500', label: 'Snapchat' },
+    { key: 'facebook', url: socials.facebook, Icon: FacebookIcon, color: 'hover:text-[#1877F2]', label: 'Facebook' },
+    { key: 'github', url: socials.github, Icon: GitHubIcon, color: 'hover:text-warm-text', label: 'GitHub' },
+  ].filter((s) => !!s.url);
+
   return (
     <header className="sticky top-0 z-40 w-full bg-warm-bg/90 backdrop-blur-md border-b border-warm-border/70 transition-colors duration-500">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        {/* Left: Authentic SID Brand Monogram & Wordmark */}
-        <Link href="/" className="group flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-warm-surface border border-warm-border shadow-apple-sm flex items-center justify-center text-warm-text group-hover:border-warm-text/40 group-hover:scale-105 transition-all">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
+        {/* Left: SID Brand */}
+        <Link href="/" className="group flex items-center gap-2">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-warm-surface border border-warm-border shadow-apple-sm flex items-center justify-center text-warm-text group-hover:border-warm-text/40 group-hover:scale-105 transition-all">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="3" />
               <circle cx="12" cy="12" r="9" strokeDasharray="3 3" />
               <path d="M12 2v2M12 20v2M2 12h2M20 12h2" opacity="0.6" />
@@ -76,13 +85,13 @@ export default function Header() {
             <span className="font-bold text-sm tracking-tight text-warm-text group-hover:text-black transition-colors leading-none">
               SID
             </span>
-            <span className="text-[10px] text-warm-muted font-mono tracking-wider uppercase leading-none mt-1">
+            <span className="text-[10px] text-warm-muted font-mono tracking-wider uppercase leading-none mt-0.5">
               Universe
             </span>
           </div>
         </Link>
 
-        {/* Center / Right: Desktop Navigation */}
+        {/* Center: Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-1 bg-warm-surface/80 px-3 py-1.5 rounded-full border border-warm-border/80 shadow-apple-sm">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
@@ -102,9 +111,9 @@ export default function Header() {
           })}
         </nav>
 
-        {/* Right: Weather Pill & Socials */}
+        {/* Right side */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Subtle Live Hetauda Atmosphere pill */}
+          {/* Weather pill — desktop only */}
           {weather && (
             <div
               title={`Hetauda: ${weather.condition}, ${weather.temperature}°C`}
@@ -123,74 +132,20 @@ export default function Header() {
             </div>
           )}
 
-          {/* Authentic Real Brand Social Icons */}
-          <div className="flex items-center gap-1">
-            {socials.discord && (
+          {/* Social Icons — HIDDEN on mobile, shown on md+ */}
+          <div className="hidden md:flex items-center gap-1">
+            {socialEntries.map((s) => (
               <a
-                href={socials.discord}
+                key={s.key}
+                href={s.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                title="Discord"
-                className="w-8 h-8 rounded-full flex items-center justify-center text-warm-secondary hover:text-[#5865F2] hover:bg-warm-surface transition-all duration-200"
+                title={s.label}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-warm-secondary ${s.color} hover:bg-warm-surface transition-all duration-200`}
               >
-                <DiscordIcon size={16} />
+                <s.Icon size={16} />
               </a>
-            )}
-            {socials.steam && (
-              <a
-                href={socials.steam}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Steam"
-                className="w-8 h-8 rounded-full flex items-center justify-center text-warm-secondary hover:text-[#171A21] hover:bg-warm-surface transition-all duration-200"
-              >
-                <SteamIcon size={16} />
-              </a>
-            )}
-            {socials.youtube && (
-              <a
-                href={socials.youtube}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="YouTube"
-                className="w-8 h-8 rounded-full flex items-center justify-center text-warm-secondary hover:text-[#FF0000] hover:bg-warm-surface transition-all duration-200"
-              >
-                <YouTubeIcon size={16} />
-              </a>
-            )}
-            {socials.snapchat && (
-              <a
-                href={socials.snapchat}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Snapchat"
-                className="w-8 h-8 rounded-full flex items-center justify-center text-warm-secondary hover:text-amber-500 hover:bg-warm-surface transition-all duration-200"
-              >
-                <SnapchatIcon size={16} />
-              </a>
-            )}
-            {socials.facebook && (
-              <a
-                href={socials.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Facebook"
-                className="w-8 h-8 rounded-full flex items-center justify-center text-warm-secondary hover:text-[#1877F2] hover:bg-warm-surface transition-all duration-200"
-              >
-                <FacebookIcon size={16} />
-              </a>
-            )}
-            {socials.github && (
-              <a
-                href={socials.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="GitHub"
-                className="w-8 h-8 rounded-full flex items-center justify-center text-warm-secondary hover:text-warm-text hover:bg-warm-surface transition-all duration-200"
-              >
-                <GitHubIcon size={16} />
-              </a>
-            )}
+            ))}
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -206,17 +161,39 @@ export default function Header() {
 
       {/* Mobile Navigation Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden px-4 pt-2 pb-5 bg-warm-surface border-b border-warm-border space-y-2 animate-fadeIn">
+        <div className="md:hidden px-4 pt-2 pb-4 bg-warm-surface border-b border-warm-border space-y-1.5 animate-fadeIn">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-xl text-sm font-medium text-warm-secondary hover:text-warm-text hover:bg-warm-subtle"
+              className={`block px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                pathname === link.href
+                  ? 'bg-warm-text text-white'
+                  : 'text-warm-secondary hover:text-warm-text hover:bg-warm-subtle'
+              }`}
             >
               {link.label}
             </Link>
           ))}
+
+          {/* Social icons row inside mobile menu */}
+          <div className="pt-3 mt-1 border-t border-warm-border/60 flex items-center gap-2 px-2">
+            {socialEntries.map((s) => (
+              <a
+                key={s.key}
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={s.label}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-warm-secondary ${s.color} hover:bg-warm-subtle transition-all duration-200`}
+              >
+                <s.Icon size={16} />
+              </a>
+            ))}
+          </div>
+
+          {/* Weather in mobile menu */}
           {weather && (
             <div className="pt-2 border-t border-warm-border/60 flex items-center justify-between text-xs text-warm-secondary px-3">
               <span>Hetauda, Nepal</span>
