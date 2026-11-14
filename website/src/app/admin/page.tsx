@@ -28,8 +28,12 @@ import {
   Copy,
   Volume2,
   Play,
-  Pause
+  Pause,
+  Upload,
+  FileAudio
 } from 'lucide-react';
+import { storage } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import {
   universeStore,
   DEFAULT_SETTINGS,
@@ -344,6 +348,8 @@ export default function AdminPage() {
   };
 
   // 10. Background Music Configuration
+  const [isUploadingAudio, setIsUploadingAudio] = useState(false);
+
   const handleSaveBackgroundMusic = (updates: Partial<NonNullable<SiteSettings['backgroundMusic']>>) => {
     const updatedMusic = {
       ...(settings.backgroundMusic || {
@@ -359,6 +365,58 @@ export default function AdminPage() {
     setSettings(newSettings);
     universeStore.set('siteSettings', newSettings);
     notify('Background music settings updated.');
+  };
+
+  const handleAudioFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingAudio(true);
+    const cleanName = file.name.replace(/\.[^/.]+$/, '');
+
+    // 1. Create immediate local playback URL
+    const localUrl = URL.createObjectURL(file);
+    handleSaveBackgroundMusic({
+      audioUrl: localUrl,
+      title: cleanName,
+      enabled: true
+    });
+
+    // 2. Upload to Firebase Storage for permanent public access
+    try {
+      const storageRef = ref(storage, `backgroundMusic/${Date.now()}_${file.name}`);
+      const snap = await uploadBytes(storageRef, file);
+      const downloadUrl = await getDownloadURL(snap.ref);
+
+      handleSaveBackgroundMusic({
+        audioUrl: downloadUrl,
+        title: cleanName,
+        enabled: true
+      });
+      notify(`Audio file "${file.name}" uploaded from folder & active!`);
+    } catch (err: any) {
+      console.warn('Firebase storage upload notice:', err);
+      // Fallback base64 conversion
+      if (file.size < 4 * 1024 * 1024) {
+        const reader = new FileReader();
+        reader.onload = (re) => {
+          const b64 = re.target?.result as string;
+          if (b64) {
+            handleSaveBackgroundMusic({
+              audioUrl: b64,
+              title: cleanName,
+              enabled: true
+            });
+            notify(`Audio file "${file.name}" saved!`);
+          }
+        };
+        reader.readAsDataURL(file);
+      } else {
+        notify(`Audio file "${file.name}" loaded.`);
+      }
+    } finally {
+      setIsUploadingAudio(false);
+    }
   };
 
   const navItems = [
@@ -1292,6 +1350,77 @@ export default function AdminPage() {
                   </label>
                 </div>
 
+                {/* Choose from Folder (Direct File Upload) */}
+                <div className="p-5 rounded-2xl bg-amber-50/40 border border-amber-200/60 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                        <Upload size={14} className="text-amber-700" />
+                        <span>Choose Audio File from Your Folder</span>
+                      </span>
+                      <p className="text-[11px] text-amber-800/80 mt-0.5">
+                        Select any MP3, WAV, or OGG file from your computer. It will automatically load and activate for the site.
+                      </p>
+                    </div>
+
+                    <label className={`px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold cursor-pointer shadow-apple-sm transition flex items-center gap-1.5 shrink-0 ${isUploadingAudio ? 'opacity-50 pointer-events-none' : ''}`}>
+                      <FileAudio size={14} />
+                      <span>{isUploadingAudio ? 'Uploading from folder...' : 'Select File from Folder'}</span>
+                      <input
+                        type="file"
+                        accept="audio/mp3,audio/wav,audio/ogg,audio/mpeg,audio/*"
+                        onChange={handleAudioFileUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Built-in Royalty-Free Track Presets */}
+                <div className="p-4 rounded-xl bg-warm-subtle/80 border border-warm-border space-y-2">
+                  <span className="text-xs font-semibold text-warm-text block">
+                    Or Quick Select Built-in Relaxing Presets:
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleSaveBackgroundMusic({
+                        title: 'Lofi Study Session',
+                        artist: 'Chilled Beats',
+                        audioUrl: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3',
+                        enabled: true
+                      })}
+                      className="px-3 py-1.5 rounded-lg bg-warm-surface border border-warm-border text-xs text-warm-text hover:bg-warm-hover font-medium transition"
+                    >
+                      🎧 Lofi Study Session
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSaveBackgroundMusic({
+                        title: 'Deep Ambient Calm',
+                        artist: 'Atmospheric Sound',
+                        audioUrl: 'https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=ambient-piano-amp-strings-10711.mp3',
+                        enabled: true
+                      })}
+                      className="px-3 py-1.5 rounded-lg bg-warm-surface border border-warm-border text-xs text-warm-text hover:bg-warm-hover font-medium transition"
+                    >
+                      🌌 Deep Ambient Calm
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSaveBackgroundMusic({
+                        title: 'Interstellar Cinematic Space',
+                        artist: 'Hans Zimmer Inspired',
+                        audioUrl: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3?filename=cinematic-time-lapse-115672.mp3',
+                        enabled: true
+                      })}
+                      className="px-3 py-1.5 rounded-lg bg-warm-surface border border-warm-border text-xs text-warm-text hover:bg-warm-hover font-medium transition"
+                    >
+                      🎹 Cinematic Space
+                    </button>
+                  </div>
+                </div>
+
                 {/* Track Details */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
@@ -1320,17 +1449,17 @@ export default function AdminPage() {
                 {/* Audio URL */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-warm-text">
-                    Audio File / Stream URL (Direct .mp3, .ogg, or audio link)
+                    Audio File / Stream URL
                   </label>
                   <input
-                    type="url"
+                    type="text"
                     value={settings.backgroundMusic?.audioUrl || ''}
                     onChange={(e) => handleSaveBackgroundMusic({ audioUrl: e.target.value })}
-                    placeholder="https://example.com/audio/song.mp3"
+                    placeholder="https://... or chosen from folder"
                     className="w-full rounded-xl bg-warm-surface border border-warm-border px-3.5 py-2.5 text-xs font-mono text-warm-text"
                   />
                   <p className="text-[11px] text-warm-muted">
-                    Supports any direct audio URL (MP3, OGG, WAV). You can host files on GitHub Releases, Cloudflare R2, Pixabay, or personal CDN.
+                    Supports files selected from your folder, or any direct audio URL (MP3, WAV, OGG).
                   </p>
                 </div>
 

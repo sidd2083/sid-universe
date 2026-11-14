@@ -246,31 +246,32 @@ class ActivityDetector {
       if (game) {
         siddhantAction = `Siddhant is currently playing ${game.title}`;
       } else if (coding) {
-      if (coding.editor === 'Visual Studio Code') {
-        siddhantAction = `Siddhant is currently coding ${coding.project || 'StudentHub Nepal'}`;
-      } else if (coding.editor === 'Blender') {
-        siddhantAction = 'Siddhant is currently 3D modeling in Blender';
-      } else if (coding.editor === 'Adobe Photoshop') {
-        siddhantAction = 'Siddhant is currently designing in Photoshop';
+        if (coding.editor === 'Visual Studio Code') {
+          siddhantAction = `Siddhant is currently coding ${coding.project || 'StudentHub Nepal'}`;
+        } else if (coding.editor === 'Blender') {
+          siddhantAction = 'Siddhant is currently 3D modeling in Blender';
+        } else if (coding.editor === 'Adobe Photoshop') {
+          siddhantAction = 'Siddhant is currently designing in Photoshop';
+        }
+      } else if (music && music.source === 'YouTube') {
+        siddhantAction = `Siddhant is currently watching YouTube: "${music.title}"`;
+      } else if (music) {
+        siddhantAction = `Siddhant is currently listening to ${music.title} by ${music.artist}`;
+      } else if (app === 'Google Chrome') {
+        if (details && details.startsWith('Watching: ')) {
+          siddhantAction = `Siddhant is currently watching YouTube: "${details.replace('Watching: ', '')}"`;
+        } else if (details && details.toLowerCase().includes('github')) {
+          siddhantAction = `Siddhant is currently browsing GitHub: "${details.replace(/\s*·\s*GitHub.*$/i, '').trim()}"`;
+        } else if (details && details.toLowerCase().includes('studenthub')) {
+          siddhantAction = 'Siddhant is currently testing StudentHub Nepal';
+        } else if (details) {
+          siddhantAction = `Siddhant is currently browsing "${details}"`;
+        } else {
+          siddhantAction = 'Siddhant is currently browsing in Chrome';
+        }
+      } else if (app) {
+        siddhantAction = `Siddhant is currently using ${app}`;
       }
-    } else if (music && music.source === 'YouTube') {
-      siddhantAction = `Siddhant is currently watching YouTube: "${music.title}"`;
-    } else if (music) {
-      siddhantAction = `Siddhant is currently listening to ${music.title} by ${music.artist}`;
-    } else if (app === 'Google Chrome') {
-      if (details && details.startsWith('Watching: ')) {
-        siddhantAction = `Siddhant is currently watching YouTube: "${details.replace('Watching: ', '')}"`;
-      } else if (details && details.toLowerCase().includes('github')) {
-        siddhantAction = `Siddhant is currently browsing GitHub: "${details.replace(/\s*·\s*GitHub.*$/i, '').trim()}"`;
-      } else if (details && details.toLowerCase().includes('studenthub')) {
-        siddhantAction = 'Siddhant is currently testing StudentHub Nepal';
-      } else if (details) {
-        siddhantAction = `Siddhant is currently browsing "${details}"`;
-      } else {
-        siddhantAction = 'Siddhant is currently browsing in Chrome';
-      }
-    } else if (app) {
-      siddhantAction = `Siddhant is currently using ${app}`;
     }
 
     return {

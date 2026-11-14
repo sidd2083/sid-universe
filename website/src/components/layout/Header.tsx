@@ -115,17 +115,17 @@ export default function Header() {
             </div>
           )}
 
-          {/* Social Icons */}
-          <div className="hidden sm:flex items-center gap-1.5 text-warm-secondary">
+          {/* Real Colorful Brand Social Badges */}
+          <div className="flex items-center gap-1.5">
             {socials.discord && (
               <a
                 href={socials.discord}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Discord"
-                className="p-1.5 rounded-lg hover:bg-warm-surface hover:text-[#5865F2] hover:scale-110 transition duration-200"
+                className="transition"
               >
-                <DiscordIcon className="w-4 h-4" />
+                <DiscordIcon size={15} />
               </a>
             )}
             {socials.steam && (
@@ -134,9 +134,9 @@ export default function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Steam"
-                className="p-1.5 rounded-lg hover:bg-warm-surface hover:text-[#171A21] hover:scale-110 transition duration-200"
+                className="transition"
               >
-                <SteamIcon className="w-4 h-4" />
+                <SteamIcon size={15} />
               </a>
             )}
             {socials.youtube && (
@@ -145,9 +145,9 @@ export default function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 title="YouTube"
-                className="p-1.5 rounded-lg hover:bg-warm-surface hover:text-[#FF0000] hover:scale-110 transition duration-200"
+                className="transition"
               >
-                <YouTubeIcon className="w-4 h-4" />
+                <YouTubeIcon size={15} />
               </a>
             )}
             {socials.snapchat && (
@@ -156,9 +156,9 @@ export default function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Snapchat"
-                className="p-1.5 rounded-lg hover:bg-warm-surface hover:text-[#000000] hover:scale-110 transition duration-200"
+                className="transition"
               >
-                <SnapchatIcon className="w-4 h-4" />
+                <SnapchatIcon size={15} />
               </a>
             )}
             {socials.facebook && (
@@ -167,9 +167,9 @@ export default function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Facebook"
-                className="p-1.5 rounded-lg hover:bg-warm-surface hover:text-[#1877F2] hover:scale-110 transition duration-200"
+                className="transition"
               >
-                <FacebookIcon className="w-4 h-4" />
+                <FacebookIcon size={15} />
               </a>
             )}
             {socials.github && (
@@ -178,9 +178,9 @@ export default function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 title="GitHub"
-                className="p-1.5 rounded-lg hover:bg-warm-surface hover:text-black hover:scale-110 transition duration-200"
+                className="transition"
               >
-                <GitHubIcon className="w-4 h-4" />
+                <GitHubIcon size={15} />
               </a>
             )}
           </div>

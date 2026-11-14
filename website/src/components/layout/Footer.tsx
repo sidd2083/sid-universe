@@ -50,16 +50,15 @@ export default function Footer() {
         </div>
 
         {/* Social Links Row */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 text-warm-secondary">
+        <div className="flex flex-wrap items-center gap-2.5 pt-2">
           {socials.discord && (
             <a
               href={socials.discord}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-xl bg-warm-surface border border-warm-border hover:text-[#5865F2] hover:border-[#5865F2]/40 hover:scale-105 transition shadow-apple-sm"
               title="Discord"
             >
-              <DiscordIcon className="w-4 h-4" />
+              <DiscordIcon size={18} />
             </a>
           )}
           {socials.steam && (
@@ -67,10 +66,9 @@ export default function Footer() {
               href={socials.steam}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-xl bg-warm-surface border border-warm-border hover:text-[#171A21] hover:border-black/30 hover:scale-105 transition shadow-apple-sm"
               title="Steam"
             >
-              <SteamIcon className="w-4 h-4" />
+              <SteamIcon size={18} />
             </a>
           )}
           {socials.youtube && (
@@ -78,10 +76,9 @@ export default function Footer() {
               href={socials.youtube}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-xl bg-warm-surface border border-warm-border hover:text-[#FF0000] hover:border-[#FF0000]/40 hover:scale-105 transition shadow-apple-sm"
               title="YouTube"
             >
-              <YouTubeIcon className="w-4 h-4" />
+              <YouTubeIcon size={18} />
             </a>
           )}
           {socials.snapchat && (
@@ -89,10 +86,9 @@ export default function Footer() {
               href={socials.snapchat}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-xl bg-warm-surface border border-warm-border hover:text-black hover:border-black/30 hover:scale-105 transition shadow-apple-sm"
               title="Snapchat"
             >
-              <SnapchatIcon className="w-4 h-4" />
+              <SnapchatIcon size={18} />
             </a>
           )}
           {socials.facebook && (
@@ -100,10 +96,9 @@ export default function Footer() {
               href={socials.facebook}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-xl bg-warm-surface border border-warm-border hover:text-[#1877F2] hover:border-[#1877F2]/40 hover:scale-105 transition shadow-apple-sm"
               title="Facebook"
             >
-              <FacebookIcon className="w-4 h-4" />
+              <FacebookIcon size={18} />
             </a>
           )}
           {socials.github && (
@@ -111,10 +106,9 @@ export default function Footer() {
               href={socials.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-xl bg-warm-surface border border-warm-border hover:text-black hover:border-black/40 hover:scale-105 transition shadow-apple-sm"
               title="GitHub"
             >
-              <GitHubIcon className="w-4 h-4" />
+              <GitHubIcon size={18} />
             </a>
           )}
         </div>
