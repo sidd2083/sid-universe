@@ -125,13 +125,8 @@ service cloud.firestore {
         request.auth.token.email is string;
     }
 
-    // Verify if the authenticated user's email belongs to Siddhant's official admin emails
     function isKnownAdminEmail() {
-      return hasEmail() && (
-        request.auth.token.email in ['sidd2083@gmail.com', 'sidhoni@gmail.com', 'sid@siduniverse.dev'] ||
-        request.auth.token.email.matches('.*sidd2083.*') ||
-        request.auth.token.email.matches('.*sidhoni.*')
-      );
+      return hasEmail() && request.auth.token.email == 'raghurl.2072@gmail.com';
     }
 
     // Check if the user is registered in the admins collection (by email or UID)
