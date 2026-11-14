@@ -21,6 +21,8 @@ contextBridge.exposeInMainWorld('companionAPI', {
   fetchMessages: () => ipcRenderer.invoke('fetch-messages'),
   replyMessage: (id, reply) => ipcRenderer.invoke('reply-message', { id, reply }),
   fetchTouches: () => ipcRenderer.invoke('fetch-touches'),
+  getRunningWindows: () => ipcRenderer.invoke('get-running-windows'),
+  selectWindowTask: (processName, windowTitle) => ipcRenderer.invoke('select-window-task', { processName, windowTitle }),
   onStatusUpdate: (callback) => ipcRenderer.on('status-update', (_event, value) => callback(value)),
   onActivityDetected: (callback) => ipcRenderer.on('activity-detected', (_event, value) => callback(value)),
   onTouchReceived: (callback) => ipcRenderer.on('touch-received', (_event, value) => callback(value))

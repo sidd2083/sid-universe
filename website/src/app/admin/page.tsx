@@ -273,6 +273,7 @@ export default function AdminPage() {
       const updated = games.filter((g) => g.id !== id);
       setGames(updated);
       universeStore.set('games', updated);
+      universeStore.remove('games', id);
       notify('Game deleted.');
     }
   };
@@ -307,6 +308,7 @@ export default function AdminPage() {
       const updated = songs.filter((s) => s.id !== id);
       setSongs(updated);
       universeStore.set('songs', updated);
+      universeStore.remove('songs', id);
       notify('Song deleted.');
     }
   };
@@ -343,6 +345,7 @@ export default function AdminPage() {
       const updated = watchlist.filter((w) => w.id !== id);
       setWatchlist(updated);
       universeStore.set('watchlist', updated);
+      universeStore.remove('watchlist', id);
       notify('Watchlist item deleted.');
     }
   };
@@ -1075,13 +1078,25 @@ export default function AdminPage() {
                     </p>
                   </div>
 
-                  <button
-                    onClick={handleAddGame}
-                    className="px-3.5 py-1.5 rounded-xl bg-warm-text text-white text-xs font-medium hover:bg-black transition flex items-center gap-1.5 shadow-apple-sm"
-                  >
-                    <Plus size={13} />
-                    <span>Add Game</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        universeStore.set('games', games);
+                        notify('Games saved to website & Firestore.');
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700 transition flex items-center gap-1.5 shadow-apple-sm"
+                    >
+                      <Save size={13} />
+                      <span>Save Games</span>
+                    </button>
+                    <button
+                      onClick={handleAddGame}
+                      className="px-3.5 py-1.5 rounded-xl bg-warm-text text-white text-xs font-medium hover:bg-black transition flex items-center gap-1.5 shadow-apple-sm"
+                    >
+                      <Plus size={13} />
+                      <span>Add Game</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -1159,13 +1174,25 @@ export default function AdminPage() {
                     </p>
                   </div>
 
-                  <button
-                    onClick={handleAddSong}
-                    className="px-3.5 py-1.5 rounded-xl bg-warm-text text-white text-xs font-medium hover:bg-black transition flex items-center gap-1.5 shadow-apple-sm"
-                  >
-                    <Plus size={13} />
-                    <span>Add Track</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        universeStore.set('songs', songs);
+                        notify('Music tracks saved to website & Firestore.');
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl bg-amber-600 text-white text-xs font-medium hover:bg-amber-700 transition flex items-center gap-1.5 shadow-apple-sm"
+                    >
+                      <Save size={13} />
+                      <span>Save Tracks</span>
+                    </button>
+                    <button
+                      onClick={handleAddSong}
+                      className="px-3.5 py-1.5 rounded-xl bg-warm-text text-white text-xs font-medium hover:bg-black transition flex items-center gap-1.5 shadow-apple-sm"
+                    >
+                      <Plus size={13} />
+                      <span>Add Track</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-3">
@@ -1223,13 +1250,25 @@ export default function AdminPage() {
                     </p>
                   </div>
 
-                  <button
-                    onClick={handleAddWatchlist}
-                    className="px-3.5 py-1.5 rounded-xl bg-warm-text text-white text-xs font-medium hover:bg-black transition flex items-center gap-1.5 shadow-apple-sm"
-                  >
-                    <Plus size={13} />
-                    <span>Add Item</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        universeStore.set('watchlist', watchlist);
+                        notify('Watchlist saved to website & Firestore.');
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl bg-sky-600 text-white text-xs font-medium hover:bg-sky-700 transition flex items-center gap-1.5 shadow-apple-sm"
+                    >
+                      <Save size={13} />
+                      <span>Save Watchlist</span>
+                    </button>
+                    <button
+                      onClick={handleAddWatchlist}
+                      className="px-3.5 py-1.5 rounded-xl bg-warm-text text-white text-xs font-medium hover:bg-black transition flex items-center gap-1.5 shadow-apple-sm"
+                    >
+                      <Plus size={13} />
+                      <span>Add Item</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-4">

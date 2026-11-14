@@ -88,7 +88,7 @@ service cloud.firestore {
     // 11. Admin Whitelist Verification
     match /admins/{adminId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAuthenticated();
     }
 
     // Backward compatibility for any remaining legacy collections

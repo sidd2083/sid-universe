@@ -99,6 +99,7 @@ presetChips.forEach(chip => {
 // Resume Auto-Detect Mode
 btnResumeAutoDetect.addEventListener('click', async () => {
   presetChips.forEach(c => c.classList.remove('active'));
+  if (selectRunningWindow) selectRunningWindow.value = '__auto__';
   btnResumeAutoDetect.style.display = 'none';
   currentStatusMode.textContent = 'Mode: Auto-Detect Running Processes';
 
@@ -108,6 +109,80 @@ btnResumeAutoDetect.addEventListener('click', async () => {
 
   showToast('Resumed auto-detection of running processes');
 });
+
+// Running Windows & Task Selector
+const selectRunningWindow = document.getElementById('selectRunningWindow');
+const btnRefreshWindows = document.getElementById('btnRefreshWindows');
+
+async function loadRunningWindows() {
+  if (!selectRunningWindow || !window.electron?.ipcRenderer) return;
+  try {
+    const res = await window.electron.ipcRenderer.invoke('get-running-windows');
+    const windows = res?.windows || [];
+
+    const currentVal = selectRunningWindow.value;
+    selectRunningWindow.innerHTML = '<option value="__auto__">✨ Auto-Detect Active Window (Default)</option>';
+
+    windows.forEach(w => {
+      const opt = document.createElement('option');
+      opt.value = JSON.stringify({ process: w.ProcessName, title: w.MainWindowTitle });
+      const displayTitle = w.MainWindowTitle.length > 55 ? w.MainWindowTitle.slice(0, 52) + '...' : w.MainWindowTitle;
+      opt.textContent = `🪟 ${displayTitle} (${w.ProcessName})`;
+      selectRunningWindow.appendChild(opt);
+    });
+
+    if (currentVal && currentVal !== '__auto__') {
+      selectRunningWindow.value = currentVal;
+    }
+  } catch (err) {
+    console.warn('Load windows error:', err);
+  }
+}
+
+if (btnRefreshWindows) {
+  btnRefreshWindows.addEventListener('click', async () => {
+    btnRefreshWindows.textContent = 'Refreshing...';
+    await loadRunningWindows();
+    btnRefreshWindows.textContent = '🔄 Refresh Windows';
+    showToast('Running windows list refreshed!');
+  });
+}
+
+if (selectRunningWindow) {
+  selectRunningWindow.addEventListener('change', async () => {
+    const val = selectRunningWindow.value;
+    if (val === '__auto__') {
+      btnResumeAutoDetect.style.display = 'none';
+      presetChips.forEach(c => c.classList.remove('active'));
+      currentStatusMode.textContent = 'Mode: Auto-Detect Running Processes';
+      if (window.electron?.ipcRenderer) {
+        await window.electron.ipcRenderer.invoke('select-window-task', { processName: '__auto__' });
+      }
+      showToast('Switched to Auto-Detect mode');
+    } else {
+      try {
+        const parsed = JSON.parse(val);
+        presetChips.forEach(c => c.classList.remove('active'));
+        currentStatusMode.textContent = `Mode: Locked Window (${parsed.process})`;
+        btnResumeAutoDetect.style.display = 'inline-block';
+        if (window.electron?.ipcRenderer) {
+          const res = await window.electron.ipcRenderer.invoke('select-window-task', {
+            processName: parsed.process,
+            windowTitle: parsed.title
+          });
+          if (res?.status) {
+            actionBroadcastVal.textContent = res.status;
+          }
+        }
+        showToast(`Broadcasting window: ${parsed.title.slice(0, 30)}...`);
+      } catch (e) {}
+    }
+  });
+}
+
+// Initial load of windows
+loadRunningWindows();
+setInterval(loadRunningWindows, 12000);
 
 // Custom Status Broadcast
 btnSaveStatus.addEventListener('click', async () => {

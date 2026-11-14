@@ -121,6 +121,16 @@ export default function LearningPage() {
           ))}
         </div>
       </div>
+
+      {/* Learning Philosophy Quote */}
+      <div className="apple-card p-6 sm:p-8 bg-warm-subtle/70 border border-warm-border text-center">
+        <blockquote className="text-base sm:text-lg font-serif italic text-warm-text max-w-xl mx-auto leading-relaxed">
+          "Live as if you were to die tomorrow. Learn as if you were to live forever."
+        </blockquote>
+        <cite className="block text-xs font-mono uppercase tracking-widest text-warm-muted mt-2.5 not-italic">
+          — Mahatma Gandhi
+        </cite>
+      </div>
     </div>
   );
 }

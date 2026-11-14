@@ -283,6 +283,24 @@ ipcMain.handle('clear-manual-status', async () => {
   return { success: true };
 });
 
+// Running windows selector
+ipcMain.handle('get-running-windows', async () => {
+  try {
+    const windows = await activityDetector.getRunningWindows();
+    return { success: true, windows };
+  } catch (err) {
+    return { success: false, windows: [], error: err.message };
+  }
+});
+
+ipcMain.handle('select-window-task', async (_event, params) => {
+  const { processName, windowTitle } = params || {};
+  const res = activityDetector.setSelectedWindow(processName, windowTitle);
+  await performActivityScan();
+  await syncTelemetry();
+  return { success: true, ...res };
+});
+
 // Test Connection with website
 ipcMain.handle('test-connection', async (_event, params) => {
   const url = (params?.url || config.apiUrl || 'http://localhost:3000').replace(/\/$/, '');

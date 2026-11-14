@@ -133,6 +133,16 @@ export default function PortfolioPage() {
           );
         })}
       </div>
+
+      {/* Creation & Execution Quote */}
+      <div className="apple-card p-6 sm:p-8 bg-warm-subtle/70 border border-warm-border text-center">
+        <blockquote className="text-base sm:text-lg font-serif italic text-warm-text max-w-xl mx-auto leading-relaxed">
+          "Ideas are easy. Implementation is hard. The value is in the execution."
+        </blockquote>
+        <cite className="block text-xs font-mono uppercase tracking-widest text-warm-muted mt-2.5 not-italic">
+          — Guy Kawasaki
+        </cite>
+      </div>
     </div>
   );
 }

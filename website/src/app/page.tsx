@@ -144,20 +144,20 @@ export default function HomePage() {
               Hey! I am Siddhant, you can also call me Sidd. I am a full-time student currently studying in grade 11, part-time coder and builder, and casual gamer playing new games every day.
             </p>
             <p>
-              In reality, I hate everything sometimes — the routine, the classes, and even the games. But I enjoy the process of making things from scratch. It gives me a dopamine rush, and at the end of the day, it's just me sitting in my room in front of my PC trying to figure out life.
+              In reality, I hate everything sometimes, the routine, the classes, and even the games. But I enjoy the process of making things from scratch. It gives me a dopamine rush, and at the end of the day, it's just me sitting in my room in front of my PC trying to figure out life.
             </p>
           </div>
         </div>
 
-        {/* Albert Camus Quote Callout */}
+        {/* Philosophical Builder Quote Callout */}
         <div className="p-4 sm:p-5 rounded-2xl bg-warm-subtle/80 border border-warm-border/60 flex items-start gap-3">
           <span className="text-2xl text-warm-muted/60 font-serif leading-none select-none">“</span>
           <div>
             <blockquote className="text-xs sm:text-sm text-warm-text italic leading-relaxed font-serif">
-              "{settings.philosophicalQuote?.quote || "In the midst of winter, I found there was, within me, an invincible summer."}"
+              "{settings.philosophicalQuote?.quote || "The people who are crazy enough to think they can change the world are the ones who do."}"
             </blockquote>
             <cite className="block text-[10px] font-mono uppercase tracking-widest text-warm-muted mt-1.5 not-italic">
-              — {settings.philosophicalQuote?.author || "Albert Camus"}
+              — {settings.philosophicalQuote?.author || "Steve Jobs"}
             </cite>
           </div>
         </div>

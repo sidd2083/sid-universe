@@ -57,7 +57,7 @@ export default function Header() {
     { label: 'Projects', href: '/portfolio' },
     { label: 'Learning', href: '/learning' },
     { label: 'Interests', href: '/gaming' },
-    { label: 'Q&A', href: '/anonymous-messages' },
+    { label: 'Priv MSG', href: '/anonymous-messages' },
   ];
 
   return (

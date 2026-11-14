@@ -98,6 +98,20 @@ export async function saveDocument(collectionName: string, docId: string, data: 
 }
 
 /**
+ * Delete a specific document in Firestore.
+ */
+export async function deleteDocument(collectionName: string, docId: string) {
+  try {
+    const docRef = doc(db, collectionName, docId);
+    await deleteDoc(docRef);
+    return { success: true };
+  } catch (error: any) {
+    console.warn(`Failed deleting Firestore ${collectionName}/${docId}:`, error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * Submit an anonymous message to Firestore matching security rules.
  */
 export async function submitAnonymousMessage(content: string, senderName?: string, senderEmail?: string) {

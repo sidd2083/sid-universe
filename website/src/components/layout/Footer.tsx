@@ -31,10 +31,10 @@ export default function Footer() {
   const rawFooter = settings.footerQuote || DEFAULT_SETTINGS.footerQuote;
   const quoteText: string = typeof rawFooter === 'object' && rawFooter !== null
     ? rawFooter.quote
-    : (typeof rawFooter === 'string' ? rawFooter : "In the midst of winter, I found there was, within me, an invincible summer.");
+    : (typeof rawFooter === 'string' && rawFooter ? rawFooter : "When something is important enough, you do it even if the odds are not in your favor.");
   const authorText: string = typeof rawFooter === 'object' && rawFooter !== null
     ? rawFooter.author
-    : "Albert Camus";
+    : "Elon Musk";
 
   return (
     <footer className="w-full border-t border-warm-border/70 bg-warm-bg mt-24 py-16 transition-colors duration-500">

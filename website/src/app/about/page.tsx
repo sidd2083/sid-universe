@@ -62,10 +62,10 @@ export default function AboutPage() {
       <div className="apple-card p-8 sm:p-10 bg-warm-subtle/70 border border-warm-border text-center relative overflow-hidden">
         <Quote size={32} className="mx-auto text-warm-muted/40 mb-4" />
         <blockquote className="text-lg sm:text-xl md:text-2xl font-serif italic text-warm-text max-w-2xl mx-auto leading-relaxed">
-          "{settings.philosophicalQuote?.quote || "In the midst of winter, I found there was, within me, an invincible summer."}"
+          "{settings.philosophicalQuote?.quote || "The people who are crazy enough to think they can change the world are the ones who do."}"
         </blockquote>
         <cite className="block text-xs font-mono uppercase tracking-widest text-warm-muted mt-4 not-italic">
-          — {settings.philosophicalQuote?.author || "Albert Camus"}
+          — {settings.philosophicalQuote?.author || "Steve Jobs"}
         </cite>
       </div>
 

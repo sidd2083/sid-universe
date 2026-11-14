@@ -48,6 +48,95 @@ class ActivityDetector {
     this.manualDetails = null;
   }
 
+  // Get active running windows for the window selector
+  getRunningWindows() {
+    return new Promise((resolve) => {
+      if (os.platform() !== 'win32') {
+        return resolve([]);
+      }
+
+      const ps = spawn('powershell.exe', [
+        '-NoProfile',
+        '-Command',
+        'Get-Process | Where-Object { $_.MainWindowTitle -ne "" } | Select-Object ProcessName, MainWindowTitle, Id | ConvertTo-Json -Compress'
+      ], { timeout: 6000 });
+
+      let stdout = '';
+      ps.stdout.on('data', (c) => { stdout += c.toString(); });
+      ps.on('error', () => resolve([]));
+      ps.on('close', () => {
+        try {
+          if (!stdout || !stdout.trim()) return resolve([]);
+          let items = JSON.parse(stdout.trim());
+          if (!Array.isArray(items)) items = [items];
+          const filtered = items.filter(i =>
+            i.MainWindowTitle &&
+            i.MainWindowTitle.trim() &&
+            i.ProcessName !== 'powershell' &&
+            !i.MainWindowTitle.includes('Sid Companion')
+          );
+          resolve(filtered);
+        } catch (e) {
+          resolve([]);
+        }
+      });
+    });
+  }
+
+  // Set selected window task explicitly
+  setSelectedWindow(processName, windowTitle) {
+    if (!processName || processName === '__auto__') {
+      this.clearManualStatus();
+      return { auto: true };
+    }
+
+    const pLower = (processName || '').toLowerCase();
+    const wTitle = (windowTitle || '').trim();
+
+    let status = `Siddhant is currently using ${wTitle || processName}`;
+    let appName = processName;
+
+    // Check games
+    const gameMatch = KNOWN_GAMES.find(g => pLower.includes(g.process) || (wTitle && wTitle.toLowerCase().includes(g.name.toLowerCase())));
+    if (gameMatch) {
+      status = `Siddhant is currently playing ${gameMatch.name}`;
+      appName = gameMatch.name;
+    } else if (pLower.includes('code')) {
+      appName = 'Visual Studio Code';
+      if (wTitle) {
+        const clean = wTitle.replace(/\s*[-—]\s*Visual Studio Code.*$/i, '').trim();
+        const parts = clean.split(/\s*[-—]\s*/);
+        const proj = parts[parts.length - 1] || '';
+        status = proj && proj !== 'Visual Studio Code' ? `Siddhant is currently coding ${proj}` : 'Siddhant is currently coding in VS Code';
+      } else {
+        status = 'Siddhant is currently coding in VS Code';
+      }
+    } else if (pLower.includes('spotify')) {
+      appName = 'Spotify';
+      status = wTitle && !['Spotify', 'Spotify Free'].includes(wTitle) ? `Siddhant is currently listening to ${wTitle}` : 'Siddhant is currently listening to Spotify';
+    } else if (pLower.includes('chrome')) {
+      appName = 'Google Chrome';
+      if (wTitle.toLowerCase().includes('youtube')) {
+        const vid = wTitle.replace(/\s*-\s*YouTube.*$/i, '').trim();
+        status = `Siddhant is currently watching YouTube: "${vid}"`;
+      } else {
+        status = wTitle ? `Siddhant is currently browsing "${wTitle.replace(/\s*-\s*Google Chrome.*$/i, '').trim()}"` : 'Siddhant is currently browsing in Chrome';
+      }
+    } else if (pLower.includes('discord')) {
+      appName = 'Discord';
+      status = 'Siddhant is currently hanging out on Discord';
+    } else if (pLower.includes('blender')) {
+      appName = 'Blender';
+      status = 'Siddhant is currently 3D modeling in Blender';
+    } else if (pLower.includes('photoshop')) {
+      appName = 'Adobe Photoshop';
+      status = 'Siddhant is currently designing in Photoshop';
+    }
+
+    this.setManualStatus(status, appName, wTitle);
+    return { status, appName, wTitle };
+  }
+
   // Receive active tab or media from Chrome extension
   setBrowserTab(tabData) {
     this.browserReportedTab = {
@@ -123,22 +212,29 @@ class ActivityDetector {
 
               // 2. Check Creative & Coding
               if (pName.includes('code') && !detectedCoding) {
-                let project = 'StudentHub Nepal';
-                let file = 'Workspace';
-                if (wTitle.includes('Visual Studio Code')) {
-                  const parts = wTitle.split(' - Visual Studio Code')[0].split(' - ');
-                  project = parts[parts.length - 1] || 'StudentHub Nepal';
-                  file = parts.length > 1 ? parts[0] : 'Workspace';
+                let project = '';
+                let file = '';
+                if (wTitle) {
+                  // e.g. "page.tsx - sid-universe - Visual Studio Code" or "● main.js - my-app"
+                  const clean = wTitle.replace(/\s*[-—]\s*Visual Studio Code.*$/i, '').trim();
+                  const parts = clean.split(/\s*[-—]\s*/);
+                  if (parts.length >= 2) {
+                    file = parts[0].replace(/^[●*]\s*/, '').trim();
+                    project = parts[parts.length - 1].trim();
+                  } else if (parts.length === 1 && parts[0] && parts[0] !== 'Visual Studio Code') {
+                    project = parts[0].trim();
+                  }
                 }
+
                 detectedCoding = {
-                  project: project.trim(),
-                  file: file.trim(),
+                  project: project || 'Workspace',
+                  file: file || 'Code',
                   editor: 'Visual Studio Code',
                   detectedAt: new Date().toISOString()
                 };
                 if (!detectedApp) {
                   detectedApp = 'Visual Studio Code';
-                  appDetails = `Coding ${project.trim()}`;
+                  appDetails = project ? `Coding ${project}` : 'Coding in VS Code';
                 }
               } else if (pName.includes('blender') && !detectedCoding) {
                 detectedCoding = {
@@ -247,7 +343,13 @@ class ActivityDetector {
         siddhantAction = `Siddhant is currently playing ${game.title}`;
       } else if (coding) {
         if (coding.editor === 'Visual Studio Code') {
-          siddhantAction = `Siddhant is currently coding ${coding.project || 'StudentHub Nepal'}`;
+          if (coding.project && coding.project !== 'Workspace') {
+            siddhantAction = `Siddhant is currently coding ${coding.project}`;
+          } else if (coding.file && coding.file !== 'Code') {
+            siddhantAction = `Siddhant is currently working on ${coding.file} in VS Code`;
+          } else {
+            siddhantAction = 'Siddhant is currently coding in VS Code';
+          }
         } else if (coding.editor === 'Blender') {
           siddhantAction = 'Siddhant is currently 3D modeling in Blender';
         } else if (coding.editor === 'Adobe Photoshop') {

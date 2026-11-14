@@ -12,7 +12,7 @@ import {
   GreetingLanguage,
   CurrentProjectHighlight
 } from './types';
-import { listenCollection, listenDocument, saveDocument } from './firestoreService';
+import { listenCollection, listenDocument, saveDocument, deleteDocument } from './firestoreService';
 
 export const DEFAULT_GREETINGS: GreetingLanguage[] = [
   { id: 'gr-1', language: 'Nepali', greeting: 'Namaste', enabled: true },
@@ -42,14 +42,14 @@ export const DEFAULT_CURRENT_PROJECT: CurrentProjectHighlight = {
 
 export const DEFAULT_RAW_BIO = `Hey! I am Siddhant, you can also call me Sidd. I am a full-time student currently studying in grade 11, part-time coder and builder, and casual gamer playing new games every day.
 
-This is just my small bio to tell. In reality, I hate everything. I hate going to college sometimes, I hate what I am doing most of the time, I even hate the game I am playing — I don't know why, but yeah, it is what it is. I have built many projects; most of them are just sitting in my folders and GitHub. I just enjoy the process of making new things — it gives me a dopamine rush. I get this instant delusion that it will hit, and those projects definitely have the power to get hit, but yeah... me and my interests just vanish after a while.
+This is just my small bio to tell. In reality, I hate everything. I hate going to college sometimes, I hate what I am doing most of the time, I even hate the game I am playing, I don't know why, but yeah, it is what it is. I have built many projects; most of them are just sitting in my folders and GitHub. I just enjoy the process of making new things, it gives me a dopamine rush. I get this instant delusion that it will hit, and those projects definitely have the power to get hit, but yeah... me and my interests just vanish after a while.
 
-I am learning many things at the same time. I don't know if it's good or bad, but it is what it is. Like, I am currently learning AI & Machine Learning, but I wanted to learn cybersecurity. Currently, I am also learning Photoshop and Blender, but I wanted to learn video editing too. It's always my heart and brain fighting against each other — my mind wants to learn everything, but ends up finishing nothing.
+I am learning many things at the same time. I don't know if it's good or bad, but it is what it is. Like, I am currently learning AI & Machine Learning, but I wanted to learn cybersecurity. Currently, I am also learning Photoshop and Blender, but I wanted to learn video editing too. It's always my heart and brain fighting against each other, my mind wants to learn everything, but ends up finishing nothing.
 
 At the end, it's just me sitting in my room alone in front of my PC, trying to figure out life, doing and learning new things every day.`;
 
 export const DEFAULT_SETTINGS: SiteSettings = {
-  siteTitle: "Siddhant — Personal Space",
+  siteTitle: "Siddhant / Universe",
   authorName: "Siddhant",
   tagline: "Grade 11 Student · Builder · Explorer of Ideas",
   bio: DEFAULT_RAW_BIO,
@@ -62,12 +62,12 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   greetingPaused: false,
   currentProject: DEFAULT_CURRENT_PROJECT,
   philosophicalQuote: {
-    quote: "In the midst of winter, I found there was, within me, an invincible summer.",
-    author: "Albert Camus"
+    quote: "The people who are crazy enough to think they can change the world are the ones who do.",
+    author: "Steve Jobs"
   },
   footerQuote: {
-    quote: "In the midst of winter, I found there was, within me, an invincible summer.",
-    author: "Albert Camus"
+    quote: "When something is important enough, you do it even if the odds are not in your favor.",
+    author: "Elon Musk"
   },
   learningDisclaimer: "Seeing these skills and terms doesn't mean I know everything. Yes, I understand the concepts and I have consumed all these topics. But I have one trait — some might call it a god-gifted power, though it's debatable: I learn any new thing pretty fast, but my forgetting speed is just as fast! At the end of the day, I'm always learning new things, but I'm weak at applying the concepts in real life. I'm learning that too! !_!",
   socialLinks: {
@@ -312,7 +312,7 @@ export const DEFAULT_ACTIVITY: PublicActivity = {
   lastActiveTime: new Date().toISOString()
 };
 
-const SCHEMA_VERSION = 'v2.3.0_sidd_refresh';
+const SCHEMA_VERSION = 'v2.4.0_sidd_quotes_refresh';
 
 // Unified in-memory, localStorage and live Firestore store
 class UniverseStore {
@@ -442,6 +442,12 @@ class UniverseStore {
     this.updateLocal(key, value);
     if (typeof window !== 'undefined') {
       this.syncToFirestore(key, value).catch(() => {});
+    }
+  }
+
+  public remove(collectionName: string, docId: string): void {
+    if (typeof window !== 'undefined') {
+      deleteDocument(collectionName, docId).catch(() => {});
     }
   }
 

@@ -49,6 +49,23 @@
         </div>
       </div>
 
+      <!-- Window & Task Selector (Select active task to show or default auto-detect) -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div>
+            <h3 class="section-title" style="margin-bottom: 2px;">Select Active Window or Task to Broadcast</h3>
+            <span style="font-size: 11px; color: var(--text-muted);">Default is Auto-Detect, or lock to any running window</span>
+          </div>
+          <button id="btnRefreshWindows" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px;">
+            🔄 Refresh Windows
+          </button>
+        </div>
+
+        <select id="selectRunningWindow" class="input-text" style="width: 100%; padding: 8px 12px; font-size: 12px; border-radius: 8px; background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-color); cursor: pointer;">
+          <option value="__auto__">✨ Auto-Detect Active Window (Default)</option>
+        </select>
+      </div>
+
       <!-- Discord-Style Activity Presets -->
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center;">

@@ -54,10 +54,18 @@ export default function AnonymousMessagesPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-12">
       <SectionHeader
-        category="Private Inbox & Public Archive"
-        title="Anonymous Notes & Q&A"
-        description="A quiet space where you can leave me a completely anonymous note. No account or identity is collected. Selected questions and answers are published below."
+        category="Private Direct Channel"
+        title="Priv MSG"
+        description="A completely private, anonymous transmission channel directly to Siddhant's Windows companion app and admin panel."
       />
+
+      {/* Prominent Privacy Guarantee Banner */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center gap-3 text-emerald-900 shadow-apple-sm">
+        <Lock size={18} className="text-emerald-700 shrink-0" />
+        <span className="text-xs sm:text-sm font-semibold tracking-tight">
+          When you send the message, your name will not be visible. It is completely private and untraceable.
+        </span>
+      </div>
 
       {/* Form Card */}
       <div className="apple-card p-6 sm:p-8 bg-warm-surface">
@@ -65,7 +73,7 @@ export default function AnonymousMessagesPage() {
           <div className="flex items-center gap-2 mb-2">
             <Lock size={15} className="text-warm-secondary" />
             <span className="text-xs font-mono uppercase tracking-wider text-warm-muted font-medium">
-              Private Anonymous Form
+              Private Encrypted Note
             </span>
           </div>
 
@@ -73,7 +81,7 @@ export default function AnonymousMessagesPage() {
             Leave me a note
           </h3>
           <p className="text-xs sm:text-sm text-warm-secondary leading-relaxed mb-6">
-            You can leave me a message. Your name will not be visible to me.
+            Write anything on your mind. When you send the message, your name will not be visible.
           </p>
 
           {isSubmitted ? (
