@@ -18,8 +18,14 @@ export async function POST(req: Request) {
     try {
       const updateData: any = {
         status: payload.isOnline ? 'online' : 'offline',
+        isOnline: payload.isOnline,
         updatedAt: serverTimestamp(),
-        lastActive: serverTimestamp()
+        lastActive: serverTimestamp(),
+        siddhantAction: payload.siddhantAction || 'Siddhant is currently exploring ideas',
+        appName: payload.appName || payload.currentApp || null,
+        appDetails: payload.appDetails || null,
+        durationMinutes: payload.durationMinutes || 1,
+        activeSince: payload.activeSince || new Date().toISOString()
       };
       if (payload.customStatus) {
         updateData.customStatus = payload.customStatus;

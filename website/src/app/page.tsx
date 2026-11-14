@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, User } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import MultilingualGreeting from '@/components/home/MultilingualGreeting';
 import FlipClock from '@/components/home/FlipClock';
-import LocationAtmosphere from '@/components/home/LocationAtmosphere';
-import LiveActivitySection from '@/components/home/LiveActivitySection';
+import LiveActivityCard from '@/components/home/LiveActivityCard';
+import FeaturedProjectCard from '@/components/home/FeaturedProjectCard';
 import ProjectsSection from '@/components/home/ProjectsSection';
 import LearningSection from '@/components/home/LearningSection';
 import AnonymousAndQASection from '@/components/home/AnonymousAndQASection';
@@ -30,8 +30,7 @@ import {
   Song,
   WatchlistItem,
   PublishedQA,
-  PublicActivity,
-  WeatherInfo
+  PublicActivity
 } from '@/lib/types';
 
 export default function HomePage() {
@@ -43,7 +42,6 @@ export default function HomePage() {
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>(DEFAULT_WATCHLIST);
   const [publishedQA, setPublishedQA] = useState<PublishedQA[]>(DEFAULT_PUBLISHED_QA);
   const [activity, setActivity] = useState<PublicActivity>(DEFAULT_ACTIVITY);
-  const [weather, setWeather] = useState<WeatherInfo | null>(null);
 
   useEffect(() => {
     // Load initial data
@@ -73,18 +71,10 @@ export default function HomePage() {
     return () => window.removeEventListener('sid_store_updated', handleUpdate);
   }, []);
 
-  // Fetch live weather in Hetauda
-  useEffect(() => {
-    fetch('/api/weather')
-      .then((res) => res.json())
-      .then((data) => setWeather(data))
-      .catch(() => {});
-  }, []);
-
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-16 sm:space-y-24">
-      {/* 1. HERO: Multilingual Greeting & Large Flip Clock */}
-      <section className="space-y-8 pt-2">
+      {/* 1. HERO: Multilingual Greeting, Large Flip Clock & Live Activity Card */}
+      <section className="space-y-8 pt-2 text-center">
         <MultilingualGreeting
           greetings={settings.greetings}
           intervalMs={settings.greetingIntervalMs}
@@ -92,16 +82,18 @@ export default function HomePage() {
         />
 
         {/* Large Flip-Style Digital Clock */}
-        <div className="pt-2 pb-4">
+        <div className="pt-2 pb-2">
           <FlipClock format={settings.clockFormat || '12h'} />
         </div>
 
-        {/* Live Location Atmosphere Card (Hetauda, Nepal) */}
-        <LocationAtmosphere weather={weather} />
+        {/* Live Activity Card (Replaces Location Atmosphere) */}
+        <div className="pt-2">
+          <LiveActivityCard activity={activity} />
+        </div>
       </section>
 
-      {/* 2. ABOUT ME: Compact Introduction */}
-      <section className="apple-card p-6 sm:p-8">
+      {/* 2. ABOUT ME: Honest & Philosophical Introduction */}
+      <section className="apple-card p-6 sm:p-8 bg-warm-surface border border-warm-border shadow-apple-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <span className="text-xs font-mono uppercase tracking-wider text-warm-muted">
             Personal Introduction
@@ -110,7 +102,7 @@ export default function HomePage() {
             href="/about"
             className="text-xs font-semibold text-warm-text hover:text-warm-amber flex items-center gap-1 group self-start sm:self-auto"
           >
-            <span>Know more about me</span>
+            <span>Read full story & philosophy</span>
             <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
@@ -118,20 +110,20 @@ export default function HomePage() {
         <h2 className="text-xl sm:text-2xl font-bold text-warm-text tracking-tight mb-3">
           {settings.tagline}
         </h2>
-        <p className="text-sm sm:text-base text-warm-secondary leading-relaxed max-w-3xl">
-          {settings.bio}
-        </p>
+        <div className="space-y-3 text-sm sm:text-base text-warm-secondary leading-relaxed max-w-3xl">
+          <p>
+            Hey! I am Siddhant, you can also call me Sidd. I am a full-time student currently studying in grade 11, part-time coder and builder, and casual gamer playing new games every day.
+          </p>
+          <p>
+            In reality, I hate everything sometimes — the routine, the classes, and even the games. But I enjoy the process of making things from scratch. It gives me a dopamine rush, and at the end of the day, it's just me sitting in my room in front of my PC trying to figure out life.
+          </p>
+        </div>
       </section>
 
-      {/* 3. LIVE ACTIVITY: Synchronized with Windows Companion */}
-      <section>
-        <LiveActivitySection
-          activity={activity}
-          currentProject={settings.currentProject || DEFAULT_SETTINGS.currentProject}
-        />
-      </section>
+      {/* 3. FEATURED RECENT BIG PROJECT: StudentHub Nepal */}
+      <FeaturedProjectCard project={settings.currentProject || DEFAULT_SETTINGS.currentProject} />
 
-      {/* 4. PROJECTS: Built, Currently building, Want to build */}
+      {/* 4. PROJECTS: Built, In Progress, Want to Build */}
       <ProjectsSection projects={projects} />
 
       {/* 5. LEARNING & EXPLORING */}

@@ -7,6 +7,13 @@ import { DEFAULT_SETTINGS } from '@/lib/db';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const rawFooter = DEFAULT_SETTINGS.footerQuote;
+  const quoteText: string = typeof rawFooter === 'object' && rawFooter !== null
+    ? rawFooter.quote
+    : (typeof rawFooter === 'string' ? rawFooter : "In the midst of winter, I found there was, within me, an invincible summer.");
+  const authorText: string = typeof rawFooter === 'object' && rawFooter !== null
+    ? rawFooter.author
+    : "Albert Camus";
 
   return (
     <footer className="w-full border-t border-warm-border/70 bg-warm-bg mt-24 py-16 transition-colors duration-500">
@@ -14,10 +21,10 @@ export default function Footer() {
         {/* Philosophical Quote */}
         <div className="max-w-2xl">
           <blockquote className="font-serif italic text-lg sm:text-xl text-warm-text leading-relaxed">
-            "{DEFAULT_SETTINGS.footerQuote.quote}"
+            "{quoteText}"
           </blockquote>
           <cite className="block text-xs font-mono text-warm-muted uppercase tracking-wider not-italic mt-2">
-            — {DEFAULT_SETTINGS.footerQuote.author}
+            — {authorText}
           </cite>
         </div>
 

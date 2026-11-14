@@ -209,6 +209,11 @@ async function syncTelemetry() {
     coding: config.shareCoding ? latestDetected.coding : null,
     browserTab: config.shareBrowser ? latestDetected.browserTab : null,
     currentApp: latestDetected.currentApp || null,
+    appName: latestDetected.currentApp || null,
+    appDetails: latestDetected.appDetails || null,
+    siddhantAction: latestDetected.siddhantAction || 'Siddhant is currently exploring ideas',
+    durationMinutes: latestDetected.durationMinutes || 1,
+    activeSince: latestDetected.activeSince || new Date().toISOString(),
     customStatus: config.customStatus || null,
     sharingPaused: !config.shareActivity
   };

@@ -113,7 +113,7 @@ export default function AdminLoginPage() {
                   type="password"
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
-                  placeholder="Master passcode (default: sid2026)"
+                  placeholder="Master passcode"
                   required
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-warm-subtle/80 border border-warm-border text-xs text-warm-text placeholder-warm-muted focus:outline-none focus:border-warm-text transition"
                 />
