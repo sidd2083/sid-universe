@@ -44,15 +44,12 @@ async function getActiveTabInfo() {
 async function transmitTab(tabInfo) {
   if (!tabInfo || !tabInfo.title) return;
 
-  const payloadKey = `${tabInfo.domain}::${tabInfo.title}`;
-  if (payloadKey === lastSentPayloadKey) return; // Prevent duplicate rapid posts
-
   const payload = {
     source: tabInfo.isYouTube ? 'YouTube' : 'Chrome Web',
     title: tabInfo.title,
     url: tabInfo.url,
     domain: tabInfo.domain,
-    timestamp: tabInfo.timestamp
+    timestamp: Date.now()
   };
 
   let sent = false;

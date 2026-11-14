@@ -288,7 +288,11 @@ class ActivityDetector {
         }
 
         // 4. Browser reported activity (from Chrome extension)
-        const isBrowserRecent = this.browserReportedTab && (Date.now() - this.browserReportedTab.timestamp < 60000);
+        // Keep active browser tab as long as it was reported, with an extended 15-minute window or indefinite if browser process exists
+        const hasChromeProcess = processes.some(p => (p.ProcessName || '').toLowerCase().includes('chrome'));
+        const isBrowserRecent = this.browserReportedTab && (
+          hasChromeProcess || (Date.now() - this.browserReportedTab.timestamp < 15 * 60 * 1000)
+        );
         if (isBrowserRecent && this.browserReportedTab.title) {
           const tab = this.browserReportedTab;
           const cleanTitle = (tab.title || '').trim();
@@ -303,7 +307,7 @@ class ActivityDetector {
               url: tab.url || '',
               detectedAt: new Date().toISOString()
             };
-            if (!detectedApp) {
+            if (!detectedApp || detectedApp === 'Google Chrome') {
               detectedApp = 'Google Chrome';
               appDetails = `Watching: ${videoTitle}`;
             }

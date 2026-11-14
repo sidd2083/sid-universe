@@ -365,10 +365,10 @@ btnTestConnection.addEventListener('click', async () => {
 // 6. IPC Real-time Event Listeners
 if (window.electron?.ipcRenderer) {
   window.electron.ipcRenderer.on('activity-detected', (_event, data) => {
-    currentAppVal.textContent = data.currentApp || 'Desktop Idle';
+    currentAppVal.textContent = data.currentApp || (data.siddhantAction ? 'Active' : 'Desktop');
     currentGameVal.textContent = data.game ? data.game.title : 'None detected';
-    currentMusicVal.textContent = data.music ? `${data.music.title} — ${data.music.artist}` : 'Idle';
-    currentCodingVal.textContent = data.coding ? `${data.coding.project} (${data.coding.editor})` : 'Idle';
+    currentMusicVal.textContent = data.music ? `${data.music.title} — ${data.music.artist}` : 'None';
+    currentCodingVal.textContent = data.coding ? `${data.coding.project} (${data.coding.editor})` : 'None';
 
     if (currentStatusMode.textContent.includes('Auto-Detect') && data.siddhantAction) {
       actionBroadcastVal.textContent = data.siddhantAction;
