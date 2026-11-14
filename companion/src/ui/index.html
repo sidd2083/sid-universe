@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sid Companion</title>
+  <title>Sid Companion — Universal Activity & Presence</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,157 +14,215 @@
         <div class="status-indicator" id="statusIndicator"></div>
         <div>
           <h1 class="app-title">Sid Companion</h1>
-          <p class="app-subtitle" id="statusSubtitle">Ready & synchronizing</p>
+          <p class="app-subtitle" id="statusSubtitle">Ready & synchronized with website</p>
         </div>
       </div>
 
-      <div class="header-actions">
+      <div class="header-actions" style="display: flex; gap: 8px;">
         <button id="btnManualSync" class="btn btn-secondary">Sync Now</button>
       </div>
     </header>
 
-    <!-- Master Switch Card -->
-    <div class="card master-card">
-      <div class="master-info">
-        <span class="label-uppercase">Master Control</span>
-        <h2 class="master-title">Share Activity</h2>
-        <p class="master-desc">
-          When active, approved foreground applications and music are synchronized to your website.
-        </p>
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-tab="tab-activity">⚡ Activity & Status</button>
+      <button class="tab-btn" data-tab="tab-confessions">
+        💌 Confessions <span class="tab-badge" id="confessionCountBadge" style="display:none;">0</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-touches">👋 Touches</button>
+      <button class="tab-btn" data-tab="tab-connection">⚙️ Connection</button>
+    </nav>
+
+    <!-- TAB 1: ACTIVITY & DISCORD-STYLE STATUS -->
+    <div id="tab-activity" class="tab-content active">
+      <!-- Live Broadcast Preview Card -->
+      <div class="card" style="border-left: 4px solid #10B981;">
+        <span class="label-uppercase" style="color: #059669; font-weight: 700;">Live Sentence on Website</span>
+        <div id="actionBroadcastVal" style="font-size: 15px; font-weight: 700; color: #151413; margin: 4px 0 8px 0;">
+          Detecting foreground applications...
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--text-muted);">
+          <span id="currentStatusMode">Mode: Auto-Detect Running Processes</span>
+          <button id="btnResumeAutoDetect" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px; display: none;">
+            Return to Auto-Detect
+          </button>
+        </div>
       </div>
 
-      <label class="switch switch-large">
-        <input type="checkbox" id="masterShareToggle" checked>
-        <span class="slider"></span>
-      </label>
+      <!-- Discord-Style Activity Presets -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3 class="section-title" style="margin-bottom: 0;">Quick Activity Presets (One-Click Discord Status)</h3>
+          <span style="font-size: 11px; color: var(--text-muted);">Click to broadcast instantly</span>
+        </div>
+
+        <div class="preset-grid" id="presetGrid">
+          <button class="preset-chip" data-status="Siddhant is currently playing Grand Theft Auto V" data-app="Grand Theft Auto V">
+            🎮 GTA V
+          </button>
+          <button class="preset-chip" data-status="Siddhant is currently playing Minecraft" data-app="Minecraft">
+            🎮 Minecraft
+          </button>
+          <button class="preset-chip" data-status="Siddhant is currently playing Human: Fall Flat" data-app="Human: Fall Flat">
+            🎮 Human: Fall Flat
+          </button>
+          <button class="preset-chip" data-status="Siddhant is currently playing Counter-Strike 2" data-app="Counter-Strike 2">
+            🎮 Counter-Strike 2
+          </button>
+          <button class="preset-chip" data-status="Siddhant is currently coding StudentHub Nepal" data-app="Visual Studio Code">
+            💻 Coding StudentHub
+          </button>
+          <button class="preset-chip" data-status="Siddhant is currently studying Python & AI/ML" data-app="Python Workspace">
+            🐍 Learning AI/ML
+          </button>
+          <button class="preset-chip" data-status="Siddhant is currently 3D modeling in Blender" data-app="Blender">
+            🧊 Blender 3D
+          </button>
+          <button class="preset-chip" data-status="Siddhant is currently designing in Photoshop" data-app="Adobe Photoshop">
+            🎨 Photoshop
+          </button>
+          <button class="preset-chip" data-status="Siddhant is currently watching YouTube documentaries" data-app="Google Chrome">
+            📺 Watching YouTube
+          </button>
+          <button class="preset-chip" data-status="Siddhant is currently listening to atmospheric beats" data-app="Spotify">
+            🎵 Listening to Music
+          </button>
+          <button class="preset-chip" data-status="Siddhant is currently studying Grade 11 Calculus" data-app="Studies">
+            📖 Calculus & Math
+          </button>
+          <button class="preset-chip" data-status="Siddhant is currently sitting in his room thinking about life" data-app="Offline">
+            ☕ Chilling & Life
+          </button>
+        </div>
+      </div>
+
+      <!-- Custom Manual Sentence -->
+      <div class="card">
+        <h3 class="section-title">Custom Status Broadcast</h3>
+        <div class="input-row">
+          <input
+            type="text"
+            id="customStatusInput"
+            class="text-input"
+            placeholder="e.g. Exploring deep concepts in machine learning & building"
+          >
+          <button id="btnSaveStatus" class="btn btn-primary">Broadcast</button>
+        </div>
+      </div>
+
+      <!-- Process Telemetry Grid -->
+      <div class="card">
+        <h3 class="section-title">Detected Windows Processes</h3>
+        <div class="telemetry-grid">
+          <div class="telemetry-item">
+            <span class="telemetry-label">Active App</span>
+            <div class="telemetry-value" id="currentAppVal">—</div>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">Game</span>
+            <div class="telemetry-value" id="currentGameVal">None detected</div>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">Audio</span>
+            <div class="telemetry-value" id="currentMusicVal">Idle</div>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">Project</span>
+            <div class="telemetry-value" id="currentCodingVal">Idle</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Live Telemetry Card -->
-    <div class="card">
-      <h3 class="section-title">Detected Foreground Activity</h3>
-
-      <div style="margin-bottom: 12px; padding: 10px 12px; background: #FAF9F6; border: 1px solid #E8E6DF; border-radius: 8px;">
-        <span class="telemetry-label" style="color: #059669; font-weight: 700;">Live Sentence Broadcasted to Website:</span>
-        <div id="actionBroadcastVal" style="font-size: 13px; font-weight: 600; color: #151413; margin-top: 3px;">Detecting active applications...</div>
-      </div>
-
-      <div class="telemetry-grid">
-        <div class="telemetry-item">
-          <span class="telemetry-label">Current Application</span>
-          <div class="telemetry-value" id="currentAppVal">—</div>
+    <!-- TAB 2: ANONYMOUS CONFESSIONS & DIRECT REPLY -->
+    <div id="tab-confessions" class="tab-content">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <h3 class="section-title" style="margin-bottom: 2px;">Visitor Confessions & Transmissions</h3>
+            <p style="font-size: 11px; color: var(--text-secondary);">Reply directly from this app to publish answers on the website Q&A.</p>
+          </div>
+          <button id="btnRefreshConfessions" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px;">
+            Refresh
+          </button>
         </div>
 
-        <div class="telemetry-item">
-          <span class="telemetry-label">Active Game</span>
-          <div class="telemetry-value" id="currentGameVal">None detected</div>
-        </div>
-
-        <div class="telemetry-item">
-          <span class="telemetry-label">Now Playing</span>
-          <div class="telemetry-value" id="currentMusicVal">Idle</div>
-        </div>
-
-        <div class="telemetry-item">
-          <span class="telemetry-label">Coding / Project</span>
-          <div class="telemetry-value" id="currentCodingVal">Idle</div>
+        <div id="confessionList" class="confession-list">
+          <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 12px;">
+            Loading transmissions from website...
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Category Sharing Toggles -->
-    <div class="card">
-      <h3 class="section-title">Sharing Categories</h3>
-
-      <div class="toggle-list">
-        <div class="toggle-row">
+    <!-- TAB 3: VISITOR TOUCHES & WAVES -->
+    <div id="tab-touches" class="tab-content">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
           <div>
-            <strong>Games & Sessions</strong>
-            <p class="toggle-desc">GTA V, Minecraft, Human: Fall Flat, Counter-Strike 2</p>
+            <h3 class="section-title" style="margin-bottom: 2px;">Visitor Touches & Pings</h3>
+            <p style="font-size: 11px; color: var(--text-secondary);">Live interactions from visitors on SID UNIVERSE.</p>
           </div>
-          <label class="switch">
-            <input type="checkbox" id="shareGamingToggle" checked>
-            <span class="slider"></span>
-          </label>
+          <button id="btnTestNotif" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px;">
+            Test Windows Notification
+          </button>
         </div>
 
-        <div class="toggle-row">
-          <div>
-            <strong>Music & Audio</strong>
-            <p class="toggle-desc">Spotify desktop and YouTube music playback</p>
+        <div id="touchList" class="confession-list">
+          <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 12px;">
+            No touches received yet. Waiting for website visitors...
           </div>
-          <label class="switch">
-            <input type="checkbox" id="shareMusicToggle" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div class="toggle-row">
-          <div>
-            <strong>Coding & Creative</strong>
-            <p class="toggle-desc">Visual Studio Code, Blender, and Photoshop</p>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="shareCodingToggle" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div class="toggle-row">
-          <div>
-            <strong>Browser Metadata</strong>
-            <p class="toggle-desc">Active YouTube video title via Chrome Extension</p>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="shareBrowserToggle" checked>
-            <span class="slider"></span>
-          </label>
         </div>
       </div>
     </div>
 
-    <!-- Manual Status Override -->
-    <div class="card">
-      <h3 class="section-title">Manual Status Override</h3>
-      <div class="input-row">
-        <input
-          type="text"
-          id="customStatusInput"
-          class="text-input"
-          placeholder="e.g. Building StudentHub Nepal & learning Python"
-        >
-        <button id="btnSaveStatus" class="btn btn-primary">Save Status</button>
+    <!-- TAB 4: CONNECTION & SETUP GUIDE -->
+    <div id="tab-connection" class="tab-content">
+      <!-- Connection Settings Card -->
+      <div class="card">
+        <h3 class="section-title">Website Connection Settings</h3>
+
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label for="apiUrl">Website URL (Vercel or Localhost)</label>
+          <input type="text" id="apiUrl" class="text-input" placeholder="http://localhost:3000 or https://sid-universe.vercel.app">
+        </div>
+
+        <div class="field-group" style="margin-bottom: 14px;">
+          <label for="apiToken">Companion Token</label>
+          <input type="password" id="apiToken" class="text-input" placeholder="sid_universe_secret_token_demo_2026">
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button id="btnSaveConfig" class="btn btn-primary" style="flex: 1;">Save Connection</button>
+          <button id="btnTestConnection" class="btn btn-secondary" style="flex: 1;">Test Connection</button>
+        </div>
+
+        <div id="testConnResult" style="margin-top: 10px; font-size: 11px; font-family: monospace; display: none;"></div>
+      </div>
+
+      <!-- Step-by-Step Connection Guide -->
+      <div class="card guide-box">
+        <h4 style="font-weight: 700; color: var(--text-main); margin-bottom: 8px;">How to Connect with your Website:</h4>
+        <div class="guide-step">
+          <span class="step-num">1</span>
+          <div>
+            <strong>Enter Your Site URL:</strong> If your site is live on Vercel, paste its URL above (e.g. <code>https://sid-universe.vercel.app</code>). If running locally, leave it as <code>http://localhost:3000</code>.
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="step-num">2</span>
+          <div>
+            <strong>Click "Test Connection":</strong> The app will ping your website. When you see a green checkmark, your companion app is officially synchronized!
+          </div>
+        </div>
+        <div class="guide-step">
+          <span class="step-num">3</span>
+          <div>
+            <strong>Automatic or Discord Status:</strong> Select any preset chip under "Activity & Status" to instantly set your status, or let the app run in the background to automatically detect your games, VS Code, and Spotify.
+          </div>
+        </div>
       </div>
     </div>
-
-    <!-- Diagnostic Details Drawer (collapsible) -->
-    <details class="diagnostic-drawer">
-      <summary>Settings & Diagnostic Details</summary>
-      <div class="diagnostic-content">
-        <div class="field-group">
-          <label for="apiUrl">Website API Endpoint</label>
-          <input type="text" id="apiUrl" class="text-input" placeholder="http://localhost:3000">
-        </div>
-
-        <div class="field-group">
-          <label for="apiToken">Secret Telemetry Token</label>
-          <input type="password" id="apiToken" class="text-input" placeholder="Secret Token">
-        </div>
-
-        <div class="checkbox-row">
-          <label>
-            <input type="checkbox" id="autoLaunchToggle">
-            <span>Launch automatically on Windows startup</span>
-          </label>
-        </div>
-
-        <button id="btnSaveConfig" class="btn btn-secondary full-width mt-2">Save Connection Settings</button>
-
-        <div class="diagnostic-meta">
-          <span>Extension Port: 127.0.0.1:49152</span>
-          <span id="lastSyncLabel">Last sync: Just now</span>
-        </div>
-      </div>
-    </details>
 
     <div id="toast" class="toast hidden"></div>
   </div>

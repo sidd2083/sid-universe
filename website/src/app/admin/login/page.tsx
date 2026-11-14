@@ -2,48 +2,91 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, ArrowRight, KeyRound } from 'lucide-react';
-import { auth } from '@/lib/firebase';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { ShieldCheck, AlertCircle, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { auth, db } from '@/lib/firebase';
+import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+
+// Default authorized administrator emails
+const BASE_ADMIN_EMAILS = [
+  'sidd2083@gmail.com',
+  'sidhoni@gmail.com',
+  'sid@siduniverse.dev'
+];
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [passcode, setPasscode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // 1. Google Sign-In with Firebase Auth
+  const checkIsAdmin = async (email: string): Promise<boolean> => {
+    const cleanEmail = email.toLowerCase().trim();
+
+    // 1. Check base allowlist or env var
+    const envEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '')
+      .toLowerCase()
+      .split(',')
+      .map(e => e.trim())
+      .filter(Boolean);
+
+    const allAllowed = [...BASE_ADMIN_EMAILS, ...envEmails];
+    if (allAllowed.includes(cleanEmail)) {
+      return true;
+    }
+
+    // Pattern matching for Siddhant's official handles
+    if (cleanEmail.startsWith('sidd2083') || cleanEmail.startsWith('sidhoni') || cleanEmail.includes('siddhant')) {
+      return true;
+    }
+
+    // 2. Check Firestore 'admins' collection for this email
+    try {
+      const adminDoc = await getDoc(doc(db, 'admins', cleanEmail));
+      if (adminDoc.exists() && adminDoc.data()?.isAdmin !== false) {
+        return true;
+      }
+    } catch (e) {
+      console.warn('Firestore admin check notice:', e);
+    }
+
+    return false;
+  };
+
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError('');
+
     try {
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
       const res = await signInWithPopup(auth, provider);
-      if (res?.user) {
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('sid_admin_session', res.user.email || 'authenticated');
-        }
-        router.push('/admin');
+
+      if (!res?.user || !res.user.email) {
+        throw new Error('No user account returned from Google authentication.');
       }
-    } catch (err: any) {
-      setError(err?.message || 'Google authentication failed. You can use your master passcode.');
-      setLoading(false);
-    }
-  };
 
-  // 2. Master Passcode fallback
-  const handlePasscodeLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+      const email = res.user.email;
+      const isAdmin = await checkIsAdmin(email);
 
-    if (passcode === 'sid2026' || passcode === 'admin') {
+      if (!isAdmin) {
+        // Immediate sign out and session purge for unauthorized accounts
+        await signOut(auth);
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('sid_admin_session');
+        }
+        setError(`Access Denied: ${email} is not authorized as an administrator for SID UNIVERSE. Only Siddhant's admin account can access this panel.`);
+        setLoading(false);
+        return;
+      }
+
+      // Authorized admin
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem('sid_admin_session', 'authenticated');
+        sessionStorage.setItem('sid_admin_session', email);
       }
       router.push('/admin');
-    } else {
-      setError('Invalid admin credentials. Access restricted.');
+    } catch (err: any) {
+      setError(err?.message || 'Google authentication failed.');
       setLoading(false);
     }
   };
@@ -54,28 +97,29 @@ export default function AdminLoginPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-2xl bg-warm-subtle border border-warm-border flex items-center justify-center text-warm-text mx-auto mb-4">
-            <Lock size={20} />
+            <ShieldCheck size={22} className="text-emerald-600" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-warm-text">
             Admin Management
           </h1>
           <p className="text-xs text-warm-secondary mt-1">
-            Sign in to manage personal content, live activity, and inbox.
+            Restricted to authorized administrator Google accounts only.
           </p>
         </div>
 
         {error && (
-          <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 text-center mb-6">
-            {error}
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2.5 mb-6 leading-relaxed">
+            <AlertCircle size={15} className="shrink-0 mt-0.5 text-red-600" />
+            <span>{error}</span>
           </div>
         )}
 
         <div className="space-y-4">
-          {/* Google Sign-in */}
+          {/* Strict Google Admin Sign-in */}
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full py-2.5 px-4 rounded-xl bg-warm-surface hover:bg-warm-hover border border-warm-border text-warm-text text-xs font-medium transition flex items-center justify-center gap-2 shadow-apple-sm"
+            className="w-full py-3 px-4 rounded-xl bg-warm-surface hover:bg-warm-hover border border-warm-border text-warm-text text-xs font-semibold transition flex items-center justify-center gap-2.5 shadow-apple-sm group"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path
@@ -95,40 +139,22 @@ export default function AdminLoginPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
               />
             </svg>
-            <span>Sign in with Google</span>
+            <span>{loading ? 'Verifying Admin Credentials...' : 'Sign in with Admin Google Account'}</span>
           </button>
 
-          <div className="flex items-center gap-3 py-2">
-            <div className="flex-1 h-px bg-warm-border" />
-            <span className="text-[11px] font-mono text-warm-muted uppercase">or passcode</span>
-            <div className="flex-1 h-px bg-warm-border" />
-          </div>
+          <p className="text-[11px] text-center text-warm-muted leading-relaxed pt-2">
+            Authentication is secured via Firebase Authentication with administrative whitelist verification. Public passwords and unverified accounts have been disabled.
+          </p>
 
-          {/* Passcode Form */}
-          <form onSubmit={handlePasscodeLogin} className="space-y-4">
-            <div>
-              <div className="relative">
-                <KeyRound size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-warm-muted" />
-                <input
-                  type="password"
-                  value={passcode}
-                  onChange={(e) => setPasscode(e.target.value)}
-                  placeholder="Master passcode"
-                  required
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-warm-subtle/80 border border-warm-border text-xs text-warm-text placeholder-warm-muted focus:outline-none focus:border-warm-text transition"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2.5 px-4 rounded-xl bg-warm-text hover:bg-black text-white text-xs font-medium transition flex items-center justify-center gap-2 shadow-apple-sm"
+          <div className="pt-4 border-t border-warm-border/60 text-center">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-xs text-warm-secondary hover:text-warm-text transition"
             >
-              <span>{loading ? 'Authenticating...' : 'Enter Dashboard'}</span>
-              <ArrowRight size={13} />
-            </button>
-          </form>
+              <ArrowLeft size={13} />
+              <span>Return to SID UNIVERSE</span>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

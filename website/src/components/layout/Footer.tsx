@@ -1,13 +1,34 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { MapPin } from 'lucide-react';
-import { DEFAULT_SETTINGS } from '@/lib/db';
+import { universeStore, DEFAULT_SETTINGS } from '@/lib/db';
+import { SiteSettings } from '@/lib/types';
+import {
+  DiscordIcon,
+  YouTubeIcon,
+  SteamIcon,
+  SnapchatIcon,
+  FacebookIcon,
+  GitHubIcon
+} from '@/components/ui/SocialIcons';
 
 export default function Footer() {
+  const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
+
+  useEffect(() => {
+    setSettings(universeStore.get('siteSettings', DEFAULT_SETTINGS));
+    function handleUpdate(e: any) {
+      if (e.detail?.key === 'siteSettings') setSettings(e.detail.value);
+    }
+    window.addEventListener('sid_store_updated', handleUpdate);
+    return () => window.removeEventListener('sid_store_updated', handleUpdate);
+  }, []);
+
+  const socials = settings.socialLinks || DEFAULT_SETTINGS.socialLinks;
   const currentYear = new Date().getFullYear();
-  const rawFooter = DEFAULT_SETTINGS.footerQuote;
+  const rawFooter = settings.footerQuote || DEFAULT_SETTINGS.footerQuote;
   const quoteText: string = typeof rawFooter === 'object' && rawFooter !== null
     ? rawFooter.quote
     : (typeof rawFooter === 'string' ? rawFooter : "In the midst of winter, I found there was, within me, an invincible summer.");
@@ -17,7 +38,7 @@ export default function Footer() {
 
   return (
     <footer className="w-full border-t border-warm-border/70 bg-warm-bg mt-24 py-16 transition-colors duration-500">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-10">
         {/* Philosophical Quote */}
         <div className="max-w-2xl">
           <blockquote className="font-serif italic text-lg sm:text-xl text-warm-text leading-relaxed">
@@ -26,6 +47,76 @@ export default function Footer() {
           <cite className="block text-xs font-mono text-warm-muted uppercase tracking-wider not-italic mt-2">
             — {authorText}
           </cite>
+        </div>
+
+        {/* Social Links Row */}
+        <div className="flex flex-wrap items-center gap-2 pt-2 text-warm-secondary">
+          {socials.discord && (
+            <a
+              href={socials.discord}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-xl bg-warm-surface border border-warm-border hover:text-[#5865F2] hover:border-[#5865F2]/40 hover:scale-105 transition shadow-apple-sm"
+              title="Discord"
+            >
+              <DiscordIcon className="w-4 h-4" />
+            </a>
+          )}
+          {socials.steam && (
+            <a
+              href={socials.steam}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-xl bg-warm-surface border border-warm-border hover:text-[#171A21] hover:border-black/30 hover:scale-105 transition shadow-apple-sm"
+              title="Steam"
+            >
+              <SteamIcon className="w-4 h-4" />
+            </a>
+          )}
+          {socials.youtube && (
+            <a
+              href={socials.youtube}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-xl bg-warm-surface border border-warm-border hover:text-[#FF0000] hover:border-[#FF0000]/40 hover:scale-105 transition shadow-apple-sm"
+              title="YouTube"
+            >
+              <YouTubeIcon className="w-4 h-4" />
+            </a>
+          )}
+          {socials.snapchat && (
+            <a
+              href={socials.snapchat}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-xl bg-warm-surface border border-warm-border hover:text-black hover:border-black/30 hover:scale-105 transition shadow-apple-sm"
+              title="Snapchat"
+            >
+              <SnapchatIcon className="w-4 h-4" />
+            </a>
+          )}
+          {socials.facebook && (
+            <a
+              href={socials.facebook}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-xl bg-warm-surface border border-warm-border hover:text-[#1877F2] hover:border-[#1877F2]/40 hover:scale-105 transition shadow-apple-sm"
+              title="Facebook"
+            >
+              <FacebookIcon className="w-4 h-4" />
+            </a>
+          )}
+          {socials.github && (
+            <a
+              href={socials.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-xl bg-warm-surface border border-warm-border hover:text-black hover:border-black/40 hover:scale-105 transition shadow-apple-sm"
+              title="GitHub"
+            >
+              <GitHubIcon className="w-4 h-4" />
+            </a>
+          )}
         </div>
 
         {/* Divider */}
@@ -43,6 +134,10 @@ export default function Footer() {
           </div>
 
           <div className="flex items-center gap-4 text-warm-muted">
+            <Link href="/admin/login" className="hover:text-warm-text transition">
+              Admin Portal
+            </Link>
+            <span>•</span>
             <span>© {currentYear} Sid. All personal rights reserved.</span>
           </div>
         </div>

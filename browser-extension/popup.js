@@ -5,25 +5,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   const tabDomain = document.getElementById('tabDomain');
   const syncBtn = document.getElementById('syncBtn');
 
-  const COMPANION_URL = 'http://127.0.0.1:49152';
+  const ENDPOINTS = [
+    'http://127.0.0.1:49152',
+    'http://localhost:49152'
+  ];
 
-  // 1. Check companion health
   async function checkCompanion() {
-    try {
-      const res = await fetch(`${COMPANION_URL}/health`, { method: 'GET' });
-      if (res.ok) {
-        statusDot.className = 'dot connected';
-        statusText.textContent = 'Companion Online';
-        return true;
-      }
-    } catch (e) {
-      statusDot.className = 'dot disconnected';
-      statusText.textContent = 'Companion Closed';
-      return false;
+    for (const host of ENDPOINTS) {
+      try {
+        const res = await fetch(`${host}/health`, { method: 'GET' });
+        if (res.ok) {
+          statusDot.className = 'dot connected';
+          statusText.textContent = 'Companion Online';
+          return host;
+        }
+      } catch (e) {}
     }
+    statusDot.className = 'dot disconnected';
+    statusText.textContent = 'Companion Closed';
+    return null;
   }
 
-  // 2. Fetch current active tab
   async function refreshCurrentTab() {
     try {
       const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
@@ -40,16 +42,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         return { title: cleanTitle, url: tab.url, domain: domain };
       }
     } catch (e) {
-      tabTitle.textContent = 'No tab focused';
-      tabDomain.textContent = 'idle';
+      tabTitle.textContent = 'Active Chrome Tab';
+      tabDomain.textContent = 'web';
     }
     return null;
   }
 
-  await checkCompanion();
+  const activeHost = await checkCompanion();
   const currentTab = await refreshCurrentTab();
 
-  // 3. Manual Sync Button
   syncBtn.addEventListener('click', async () => {
     syncBtn.textContent = 'Transmitting...';
     const tab = await refreshCurrentTab();
@@ -59,27 +60,32 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    try {
-      const res = await fetch(`${COMPANION_URL}/activity`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          source: tab.domain.includes('youtube.com') ? 'YouTube' : 'Chrome Web',
-          title: tab.title,
-          url: tab.url,
-          domain: tab.domain,
-          timestamp: Date.now()
-        })
-      });
+    let success = false;
+    for (const host of ENDPOINTS) {
+      try {
+        const res = await fetch(`${host}/activity`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            source: tab.domain.includes('youtube.com') ? 'YouTube' : 'Chrome Web',
+            title: tab.title,
+            url: tab.url,
+            domain: tab.domain,
+            timestamp: Date.now()
+          })
+        });
+        if (res.ok) {
+          success = true;
+          break;
+        }
+      } catch (e) {}
+    }
 
-      if (res.ok) {
-        statusDot.className = 'dot connected';
-        statusText.textContent = 'Companion Synced!';
-        syncBtn.textContent = '✓ Transmitted Successfully';
-      } else {
-        syncBtn.textContent = 'Sync Error';
-      }
-    } catch (err) {
+    if (success) {
+      statusDot.className = 'dot connected';
+      statusText.textContent = 'Companion Synced!';
+      syncBtn.textContent = '✓ Transmitted Successfully';
+    } else {
       statusDot.className = 'dot disconnected';
       statusText.textContent = 'Companion Closed';
       syncBtn.textContent = 'Companion not running';

@@ -12,6 +12,7 @@ import LearningSection from '@/components/home/LearningSection';
 import AnonymousAndQASection from '@/components/home/AnonymousAndQASection';
 import InterestsSection from '@/components/home/InterestsSection';
 import { BackgroundMusicPlayer } from '@/components/home/BackgroundMusicPlayer';
+import { SendTouchButton } from '@/components/home/SendTouchButton';
 import {
   universeStore,
   DEFAULT_SETTINGS,
@@ -108,9 +109,10 @@ export default function HomePage() {
           <FlipClock format={settings.clockFormat || '12h'} />
         </div>
 
-        {/* Live Activity Card (Replaces Location Atmosphere) */}
-        <div className="pt-2">
+        {/* Live Activity Card & Touch Sid Action */}
+        <div className="pt-2 flex flex-col items-center gap-3.5">
           <LiveActivityCard activity={activity} />
+          <SendTouchButton />
         </div>
       </section>
 

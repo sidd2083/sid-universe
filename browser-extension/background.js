@@ -1,5 +1,9 @@
 // Sid Universe Chrome Activity Bridge — Background Service Worker
-const COMPANION_ENDPOINT = 'http://127.0.0.1:49152/activity';
+const COMPANION_ENDPOINTS = [
+  'http://127.0.0.1:49152/activity',
+  'http://localhost:49152/activity'
+];
+
 let lastSentPayloadKey = '';
 
 async function getActiveTabInfo() {
@@ -51,26 +55,33 @@ async function transmitTab(tabInfo) {
     timestamp: tabInfo.timestamp
   };
 
-  try {
-    const response = await fetch(COMPANION_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (response.ok) {
-      lastSentPayloadKey = payloadKey;
-      await chrome.storage.local.set({
-        lastSuccessSync: Date.now(),
-        lastActiveTitle: tabInfo.title,
-        lastDomain: tabInfo.domain,
-        companionConnected: true
+  let sent = false;
+  for (const endpoint of COMPANION_ENDPOINTS) {
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
+
+      if (response.ok) {
+        lastSentPayloadKey = payloadKey;
+        sent = true;
+        await chrome.storage.local.set({
+          lastSuccessSync: Date.now(),
+          lastActiveTitle: tabInfo.title,
+          lastDomain: tabInfo.domain,
+          companionConnected: true
+        });
+        break;
+      }
+    } catch (err) {
+      // Try next endpoint
     }
-  } catch (err) {
-    await chrome.storage.local.set({
-      companionConnected: false
-    });
+  }
+
+  if (!sent) {
+    await chrome.storage.local.set({ companionConnected: false });
   }
 }
 
@@ -87,7 +98,7 @@ chrome.tabs.onActivated.addListener(() => {
 });
 
 // 2. URL or title changes
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.status === 'complete' || changeInfo.title) {
     checkAndSend();
   }
@@ -106,7 +117,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     transmitTab({
       title: message.title,
       url: message.url || sender.tab?.url || '',
-      domain: 'youtube.com',
+      domain: message.domain || 'youtube.com',
       isYouTube: true,
       timestamp: Date.now()
     });
@@ -114,8 +125,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// 5. Periodic polling (every 3 seconds)
-setInterval(checkAndSend, 3000);
+// 5. Keep alive and polling via alarms
+chrome.alarms.create('companionHeartbeat', { periodInMinutes: 0.1 });
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'companionHeartbeat') {
+    checkAndSend();
+  }
+});
 
 // Initial run
 checkAndSend();

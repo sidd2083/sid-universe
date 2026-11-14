@@ -3,6 +3,7 @@
   let lastReported = '';
 
   function reportMedia(info) {
+    if (!info || !info.title) return;
     const key = `${info.title}-${info.channel}`;
     if (key === lastReported) return;
     lastReported = key;
@@ -12,23 +13,32 @@
       chrome.runtime.sendMessage({
         type: 'MEDIA_UPDATE',
         title: info.title,
-        channel: info.channel,
-        url: info.url || window.location.href
+        channel: info.channel || 'YouTube',
+        url: info.url || window.location.href,
+        domain: window.location.hostname
       });
     } catch (e) {}
 
-    // Direct HTTP fallback to Companion
+    // Direct HTTP fallback to Companion (127.0.0.1 and localhost)
+    const payload = JSON.stringify({
+      source: 'YouTube',
+      title: info.title,
+      channel: info.channel || 'YouTube',
+      url: info.url || window.location.href,
+      domain: window.location.hostname
+    });
+
     fetch('http://127.0.0.1:49152/activity', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        source: 'YouTube',
-        title: info.title,
-        channel: info.channel,
-        url: info.url || window.location.href,
-        domain: window.location.hostname
-      })
-    }).catch(() => {});
+      body: payload
+    }).catch(() => {
+      fetch('http://localhost:49152/activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload
+      }).catch(() => {});
+    });
   }
 
   function checkYouTubeMusic() {
@@ -58,6 +68,8 @@
 
     const videoEl = document.querySelector('video');
     if (videoEl && !videoEl.paused && !videoEl.ended) {
+      let cleanTitle = document.title.replace(/\s*-\s*YouTube.*$/i, '').trim();
+
       const titleEl =
         document.querySelector('h1.ytd-watch-metadata yt-formatted-string') ||
         document.querySelector('h1.title yt-formatted-string') ||
@@ -67,9 +79,13 @@
         document.querySelector('#channel-name a');
 
       if (titleEl && titleEl.textContent.trim()) {
+        cleanTitle = titleEl.textContent.trim();
+      }
+
+      if (cleanTitle) {
         reportMedia({
           source: 'YouTube Video',
-          title: titleEl.textContent.trim(),
+          title: cleanTitle,
           channel: channelEl ? channelEl.textContent.trim() : 'YouTube Creator',
           url: window.location.href
         });
@@ -77,12 +93,18 @@
     }
   }
 
-  // Scan YouTube players every 2.5 seconds
+  // Scan YouTube players on video events & intervals
   if (window.location.hostname.includes('youtube.com')) {
+    document.addEventListener('play', () => {
+      setTimeout(() => {
+        if (!checkYouTubeMusic()) checkStandardYouTube();
+      }, 500);
+    }, true);
+
     setInterval(() => {
       if (!checkYouTubeMusic()) {
         checkStandardYouTube();
       }
-    }, 2500);
+    }, 2000);
   }
 })();

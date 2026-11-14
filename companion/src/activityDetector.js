@@ -27,10 +27,25 @@ class ActivityDetector {
     this.lastDetectedCoding = null;
     this.lastDetectedApp = null;
     this.browserReportedTab = null;
+    this.manualStatus = null;
+    this.manualAppName = null;
+    this.manualDetails = null;
 
     // Duration tracking
     this.currentActiveApp = null;
     this.activeAppStartTime = Date.now();
+  }
+
+  setManualStatus(statusText, appName = 'Manual Activity', details = null) {
+    this.manualStatus = statusText ? statusText.trim() : null;
+    this.manualAppName = appName;
+    this.manualDetails = details;
+  }
+
+  clearManualStatus() {
+    this.manualStatus = null;
+    this.manualAppName = null;
+    this.manualDetails = null;
   }
 
   // Receive active tab or media from Chrome extension
@@ -43,6 +58,18 @@ class ActivityDetector {
 
   detectRunningProcesses() {
     return new Promise((resolve) => {
+      // If manual status is locked, return immediately with manual status
+      if (this.manualStatus) {
+        return resolve(this.formatResult(
+          null,
+          null,
+          null,
+          this.manualAppName || 'Activity Preset',
+          this.manualDetails || this.manualStatus,
+          this.manualStatus
+        ));
+      }
+
       if (os.platform() !== 'win32') {
         return resolve(this.formatResult(null, null, null, null, this.browserReportedTab));
       }
@@ -198,14 +225,14 @@ class ActivityDetector {
     });
   }
 
-  formatResult(game, coding, music, app, details) {
+  formatResult(game, coding, music, app, details, manualOverride = null) {
     this.lastDetectedGame = game;
     this.lastDetectedCoding = coding;
     this.lastDetectedMusic = music;
     this.lastDetectedApp = app;
 
     // Track active application and duration
-    const currentIdentity = app || (this.browserReportedTab?.title ? 'Google Chrome' : 'Exploring');
+    const currentIdentity = manualOverride || app || (this.browserReportedTab?.title ? 'Google Chrome' : 'Exploring');
     if (this.currentActiveApp !== currentIdentity) {
       this.currentActiveApp = currentIdentity;
       this.activeAppStartTime = Date.now();
@@ -214,10 +241,11 @@ class ActivityDetector {
     const durationMinutes = Math.max(1, Math.floor((Date.now() - this.activeAppStartTime) / 60000));
 
     // Build human-friendly action text
-    let siddhantAction = 'Siddhant is currently exploring ideas';
-    if (game) {
-      siddhantAction = `Siddhant is currently playing ${game.title}`;
-    } else if (coding) {
+    let siddhantAction = manualOverride || 'Siddhant is currently exploring ideas';
+    if (!manualOverride) {
+      if (game) {
+        siddhantAction = `Siddhant is currently playing ${game.title}`;
+      } else if (coding) {
       if (coding.editor === 'Visual Studio Code') {
         siddhantAction = `Siddhant is currently coding ${coding.project || 'StudentHub Nepal'}`;
       } else if (coding.editor === 'Blender') {

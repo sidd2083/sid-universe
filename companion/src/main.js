@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, Notification } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
@@ -267,6 +267,129 @@ ipcMain.handle('toggle-master-share', () => {
   return config.shareActivity;
 });
 
+// Manual status preset & custom override
+ipcMain.handle('set-manual-status', async (_event, params) => {
+  const { status, appName, details } = params || {};
+  activityDetector.setManualStatus(status, appName, details);
+  await performActivityScan();
+  await syncTelemetry();
+  return { success: true };
+});
+
+ipcMain.handle('clear-manual-status', async () => {
+  activityDetector.clearManualStatus();
+  await performActivityScan();
+  await syncTelemetry();
+  return { success: true };
+});
+
+// Test Connection with website
+ipcMain.handle('test-connection', async (_event, params) => {
+  const url = (params?.url || config.apiUrl || 'http://localhost:3000').replace(/\/$/, '');
+  const token = params?.token || config.apiToken;
+  const startTime = Date.now();
+  try {
+    const res = await fetch(`${url}/api/companion/activity`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-companion-token': token
+      },
+      body: JSON.stringify({
+        isOnline: true,
+        siddhantAction: 'Companion connection test ping',
+        appName: 'Sid Companion'
+      })
+    });
+    const latency = Date.now() - startTime;
+    if (res.ok) {
+      return { success: true, latency, status: res.status };
+    }
+    return { success: false, error: `Server returned HTTP ${res.status}` };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+// Fetch confessions / messages from website
+ipcMain.handle('fetch-messages', async () => {
+  const url = (config.apiUrl || 'http://localhost:3000').replace(/\/$/, '');
+  try {
+    const res = await fetch(`${url}/api/messages`);
+    if (res.ok) {
+      const data = await res.json();
+      return { success: true, messages: data.messages || [] };
+    }
+    return { success: false, error: `HTTP ${res.status}` };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+// Reply to a confession from desktop app
+ipcMain.handle('reply-message', async (_event, params) => {
+  const { id, reply } = params || {};
+  const url = (config.apiUrl || 'http://localhost:3000').replace(/\/$/, '');
+  try {
+    const res = await fetch(`${url}/api/messages`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, reply, isPublished: true })
+    });
+    if (res.ok) {
+      return { success: true };
+    }
+    return { success: false, error: `HTTP ${res.status}` };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+// Fetch touches
+ipcMain.handle('fetch-touches', async () => {
+  const url = (config.apiUrl || 'http://localhost:3000').replace(/\/$/, '');
+  try {
+    const res = await fetch(`${url}/api/touch`);
+    if (res.ok) {
+      const data = await res.json();
+      return { success: true, touches: data.touches || [] };
+    }
+    return { success: false, error: `HTTP ${res.status}` };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+// Periodic Touch Receiver from Website to trigger Windows Desktop Notification
+async function pollTouches() {
+  if (!config.apiUrl) return;
+  const url = config.apiUrl.replace(/\/$/, '');
+  try {
+    const res = await fetch(`${url}/api/touch?unread=true&markRead=true`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.touches && data.touches.length > 0) {
+        for (const touch of data.touches) {
+          try {
+            if (Notification.isSupported()) {
+              const notif = new Notification({
+                title: `SID UNIVERSE — Touch Received! ${touch.emoji || '👋'}`,
+                body: `${touch.senderName || 'A visitor'} just sent you a touch from the website!`,
+                icon: path.join(__dirname, '../resources/icon.ico')
+              });
+              notif.show();
+            }
+          } catch (nErr) {}
+
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('touch-received', touch);
+          }
+        }
+      }
+    }
+  } catch (e) {}
+}
+
 // App Lifecycle
 const singleLock = app.requestSingleInstanceLock();
 if (!singleLock) {
@@ -291,6 +414,7 @@ if (!singleLock) {
 
     setInterval(performActivityScan, 6000);
     setInterval(syncTelemetry, 12000);
+    setInterval(pollTouches, 7000);
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
