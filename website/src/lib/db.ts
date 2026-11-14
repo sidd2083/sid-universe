@@ -312,7 +312,7 @@ export const DEFAULT_ACTIVITY: PublicActivity = {
   lastActiveTime: new Date().toISOString()
 };
 
-const SCHEMA_VERSION = 'v2.4.0_sidd_quotes_refresh';
+const SCHEMA_VERSION = 'v2.5.0_sidd_interests_sync';
 
 // Unified in-memory, localStorage and live Firestore store
 class UniverseStore {

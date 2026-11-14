@@ -23,9 +23,9 @@ export default function GamingPage() {
     setWatchlist(universeStore.get('watchlist', DEFAULT_WATCHLIST));
 
     function handleStoreUpdate(e: any) {
-      if (e.detail?.key === 'games') setGames(e.detail.value);
-      if (e.detail?.key === 'songs') setSongs(e.detail.value);
-      if (e.detail?.key === 'watchlist') setWatchlist(e.detail.value);
+      if (e.detail?.key === 'games' && Array.isArray(e.detail.value)) setGames(e.detail.value);
+      if (e.detail?.key === 'songs' && Array.isArray(e.detail.value)) setSongs(e.detail.value);
+      if (e.detail?.key === 'watchlist' && Array.isArray(e.detail.value)) setWatchlist(e.detail.value);
     }
 
     window.addEventListener('sid_store_updated', handleStoreUpdate);

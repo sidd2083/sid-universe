@@ -40,18 +40,31 @@ export function BackgroundMusicPlayer({ settings }: BackgroundMusicPlayerProps) 
   }
 
   const togglePlay = () => {
-    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    if (!audio) return;
 
     if (isPlaying) {
-      audioRef.current.pause();
+      audio.pause();
       setIsPlaying(false);
     } else {
-      audioRef.current.play().then(() => {
-        setIsPlaying(true);
-        setHasStarted(true);
-      }).catch((err) => {
-        console.warn('Playback error / Autoplay blocked:', err);
-      });
+      // If paused or stalled, calling play() resumes from current position
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+            setHasStarted(true);
+          })
+          .catch((err) => {
+            console.warn('Playback error / Autoplay blocked, reloading stream:', err);
+            // If the browser audio buffer was cleared upon pause, reload audio src and play
+            audio.load();
+            audio.play().then(() => {
+              setIsPlaying(true);
+              setHasStarted(true);
+            }).catch((e) => console.warn('Secondary play failed:', e));
+          });
+      }
     }
   };
 

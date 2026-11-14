@@ -11,10 +11,10 @@ interface Props {
   watchlist: WatchlistItem[];
 }
 
-/* Homepage preview: show limited items with "See more" links to /gaming */
-const PREVIEW_GAMES = 3;
-const PREVIEW_SONGS = 3;
-const PREVIEW_WATCH = 3;
+/* Homepage preview: show up to 6 items each so all added favorites are clearly visible, with "See more" links */
+const PREVIEW_GAMES = 6;
+const PREVIEW_SONGS = 6;
+const PREVIEW_WATCH = 6;
 
 export default function InterestsSection({ games, songs, watchlist }: Props) {
   const previewGames = games.slice(0, PREVIEW_GAMES);
