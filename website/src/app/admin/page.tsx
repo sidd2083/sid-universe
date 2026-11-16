@@ -13,6 +13,7 @@ import {
   Gamepad2,
   Music,
   Film,
+  Radio,
   MessageSquare,
   Cpu,
   Settings,
@@ -115,6 +116,17 @@ export default function AdminPage() {
     setMessages(universeStore.get('anonymousMessages', []));
     setPublishedQA(universeStore.get('publishedQA', DEFAULT_PUBLISHED_QA));
     setActivity(universeStore.get('publicActivity', DEFAULT_ACTIVITY));
+
+    // Fetch latest anonymous messages directly from server API
+    fetch('/api/messages')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.messages && Array.isArray(data.messages)) {
+          setMessages(data.messages);
+          universeStore.set('anonymousMessages', data.messages);
+        }
+      })
+      .catch((err) => console.warn('Admin messages fetch notice:', err));
   }, []);
 
   const notify = (msg: string) => {
@@ -157,12 +169,14 @@ export default function AdminPage() {
   };
 
   // 4. Anonymous Message Reply & Publish
-  const handlePublishReply = (msg: AnonymousMessage) => {
+  const handlePublishReply = async (msg: AnonymousMessage) => {
     if (!replyText.trim()) return;
 
-    // Update message
+    const trimmedReply = replyText.trim();
+
+    // Update local state
     const updatedMsgs = messages.map((m) =>
-      m.id === msg.id ? { ...m, reply: replyText.trim(), isPublished: true, isRead: true } : m
+      m.id === msg.id ? { ...m, reply: trimmedReply, isPublished: true, isRead: true } : m
     );
     setMessages(updatedMsgs);
     universeStore.set('anonymousMessages', updatedMsgs);
@@ -172,7 +186,7 @@ export default function AdminPage() {
       id: `qa-${Date.now()}`,
       messageId: msg.id,
       question: msg.message,
-      reply: replyText.trim(),
+      reply: trimmedReply,
       publishedAt: new Date().toISOString(),
       category: msg.category || 'General'
     };
@@ -180,9 +194,25 @@ export default function AdminPage() {
     setPublishedQA(updatedQA);
     universeStore.set('publishedQA', updatedQA);
 
+    // Save reply to backend server API and sync with Firestore
+    try {
+      await fetch('/api/messages', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: msg.id,
+          reply: trimmedReply,
+          question: msg.message,
+          isPublished: true
+        })
+      });
+    } catch (e) {
+      console.warn('API reply sync notice:', e);
+    }
+
     setReplyMessageId(null);
     setReplyText('');
-    notify('Answer published to public Q&A.');
+    notify('Answer published to public Q&A and saved!');
   };
 
   const handleDeleteMessage = (id: string) => {
@@ -204,6 +234,8 @@ export default function AdminPage() {
   };
 
   // 5. Projects CRUD
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+
   const handleAddProject = () => {
     const newP: Project = {
       id: `proj-${Date.now()}`,
@@ -218,8 +250,22 @@ export default function AdminPage() {
     };
     const updated = [newP, ...projects];
     setProjects(updated);
+    setEditingProjectId(newP.id);
     universeStore.set('projects', updated);
-    notify('New project added.');
+    notify('New project added. Edit it below.');
+  };
+
+  const handleUpdateProject = (id: string, field: string, value: any) => {
+    const updated = projects.map((p) =>
+      p.id === id ? { ...p, [field]: value } : p
+    );
+    setProjects(updated);
+  };
+
+  const handleSaveProject = (id: string) => {
+    universeStore.set('projects', projects);
+    setEditingProjectId(null);
+    notify('Project saved successfully.');
   };
 
   const handleDeleteProject = (id: string) => {
@@ -227,6 +273,7 @@ export default function AdminPage() {
       const updated = projects.filter((p) => p.id !== id);
       setProjects(updated);
       universeStore.set('projects', updated);
+      if (editingProjectId === id) setEditingProjectId(null);
       notify('Project deleted.');
     }
   };
@@ -452,6 +499,7 @@ export default function AdminPage() {
     { id: 'interests', label: 'Gaming, Music & Watchlist', icon: Gamepad2 },
     { id: 'backgroundMusic', label: 'Background Music', icon: Music },
     { id: 'inbox', label: 'Anonymous Inbox & Q&A', icon: MessageSquare },
+    { id: 'liveStream', label: 'Live Stream', icon: Radio },
     { id: 'companion', label: 'Companion Token', icon: Cpu },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
@@ -980,7 +1028,7 @@ export default function AdminPage() {
                     All Projects ({projects.length})
                   </h2>
                   <p className="text-xs text-warm-secondary mt-0.5">
-                    GSConfession, StudentHub Nepal, and upcoming creations.
+                    Click Edit to modify title, description, status, technologies, and more.
                   </p>
                 </div>
 
@@ -993,31 +1041,203 @@ export default function AdminPage() {
                 </button>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {projects.map((proj) => (
                   <div
                     key={proj.id}
-                    className="p-4 rounded-xl bg-warm-subtle border border-warm-border flex items-center justify-between gap-4"
+                    className="rounded-xl bg-warm-subtle border border-warm-border overflow-hidden"
                   >
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-warm-text text-sm">{proj.title}</span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-warm-surface border border-warm-border text-warm-secondary">
-                          {proj.status}
-                        </span>
+                    {/* Header row */}
+                    <div className="p-4 flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-bold text-warm-text text-sm truncate">{proj.title}</span>
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-warm-surface border border-warm-border text-warm-secondary shrink-0">
+                            {proj.status}
+                          </span>
+                          {proj.featured && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium shrink-0">
+                              Featured
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-warm-secondary line-clamp-1">{proj.description}</p>
                       </div>
-                      <p className="text-xs text-warm-secondary max-w-lg line-clamp-1">
-                        {proj.description}
-                      </p>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => setEditingProjectId(editingProjectId === proj.id ? null : proj.id)}
+                          className="p-2 rounded-lg text-warm-muted hover:text-warm-text transition"
+                          title="Edit Project"
+                        >
+                          <Edit size={15} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteProject(proj.id)}
+                          className="p-2 rounded-lg text-warm-muted hover:text-red-600 transition"
+                          title="Delete Project"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </div>
 
-                    <button
-                      onClick={() => handleDeleteProject(proj.id)}
-                      className="p-2 rounded-lg text-warm-muted hover:text-red-600 transition"
-                      title="Delete Project"
-                    >
-                      <Trash2 size={15} />
-                    </button>
+                    {/* Expanded edit form */}
+                    {editingProjectId === proj.id && (
+                      <div className="border-t border-warm-border p-4 space-y-4 bg-warm-surface/50">
+                        {/* Title */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-warm-secondary uppercase tracking-wider">Title</label>
+                          <input
+                            type="text"
+                            value={proj.title}
+                            onChange={(e) => handleUpdateProject(proj.id, 'title', e.target.value)}
+                            className="w-full text-sm px-3 py-2 rounded-xl bg-warm-surface border border-warm-border text-warm-text"
+                          />
+                        </div>
+
+                        {/* Description */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-warm-secondary uppercase tracking-wider">Short Description</label>
+                          <textarea
+                            value={proj.description}
+                            onChange={(e) => handleUpdateProject(proj.id, 'description', e.target.value)}
+                            rows={2}
+                            className="w-full text-xs px-3 py-2 rounded-xl bg-warm-surface border border-warm-border text-warm-text resize-none"
+                          />
+                        </div>
+
+                        {/* Long Description */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-warm-secondary uppercase tracking-wider">Long Description (optional)</label>
+                          <textarea
+                            value={proj.longDescription || ''}
+                            onChange={(e) => handleUpdateProject(proj.id, 'longDescription', e.target.value)}
+                            rows={3}
+                            className="w-full text-xs px-3 py-2 rounded-xl bg-warm-surface border border-warm-border text-warm-text resize-none"
+                          />
+                        </div>
+
+                        {/* Personal Story */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-warm-secondary uppercase tracking-wider">Personal Story (optional)</label>
+                          <textarea
+                            value={proj.personalStory || ''}
+                            onChange={(e) => handleUpdateProject(proj.id, 'personalStory', e.target.value)}
+                            rows={2}
+                            className="w-full text-xs px-3 py-2 rounded-xl bg-warm-surface border border-warm-border text-warm-text resize-none"
+                          />
+                        </div>
+
+                        {/* Row: Category + Status */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-warm-secondary uppercase tracking-wider">Category</label>
+                            <select
+                              value={proj.category}
+                              onChange={(e) => handleUpdateProject(proj.id, 'category', e.target.value)}
+                              className="w-full text-xs px-3 py-2 rounded-xl bg-warm-surface border border-warm-border text-warm-text"
+                            >
+                              <option value="Student Platform">Student Platform</option>
+                              <option value="Full-Stack">Full-Stack</option>
+                              <option value="AI & ML">AI & ML</option>
+                              <option value="Creative">Creative</option>
+                              <option value="Tools">Tools</option>
+                            </select>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-warm-secondary uppercase tracking-wider">Status</label>
+                            <select
+                              value={proj.status}
+                              onChange={(e) => handleUpdateProject(proj.id, 'status', e.target.value)}
+                              className="w-full text-xs px-3 py-2 rounded-xl bg-warm-surface border border-warm-border text-warm-text"
+                            >
+                              <option value="Currently Building">Currently Building</option>
+                              <option value="Recent Big Project">Recent Big Project</option>
+                              <option value="Built">Built</option>
+                              <option value="Want to Build">Want to Build</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Technologies */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-warm-secondary uppercase tracking-wider">Technologies (comma separated)</label>
+                          <input
+                            type="text"
+                            value={(proj.technologies || []).join(', ')}
+                            onChange={(e) => handleUpdateProject(proj.id, 'technologies', e.target.value.split(',').map(t => t.trim()).filter(Boolean))}
+                            className="w-full text-xs px-3 py-2 rounded-xl bg-warm-surface border border-warm-border text-warm-text font-mono"
+                            placeholder="Next.js, TypeScript, Tailwind CSS"
+                          />
+                        </div>
+
+                        {/* Cover Image URL */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-warm-secondary uppercase tracking-wider">Cover Image URL</label>
+                          <input
+                            type="text"
+                            value={proj.coverImage || ''}
+                            onChange={(e) => handleUpdateProject(proj.id, 'coverImage', e.target.value)}
+                            className="w-full text-xs px-3 py-2 rounded-xl bg-warm-surface border border-warm-border text-warm-text font-mono"
+                          />
+                        </div>
+
+                        {/* Row: Live URL + GitHub URL */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-warm-secondary uppercase tracking-wider">Live URL (optional)</label>
+                            <input
+                              type="text"
+                              value={proj.liveUrl || ''}
+                              onChange={(e) => handleUpdateProject(proj.id, 'liveUrl', e.target.value)}
+                              className="w-full text-xs px-3 py-2 rounded-xl bg-warm-surface border border-warm-border text-warm-text font-mono"
+                              placeholder="https://..."
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-warm-secondary uppercase tracking-wider">GitHub URL (optional)</label>
+                            <input
+                              type="text"
+                              value={proj.githubUrl || ''}
+                              onChange={(e) => handleUpdateProject(proj.id, 'githubUrl', e.target.value)}
+                              className="w-full text-xs px-3 py-2 rounded-xl bg-warm-surface border border-warm-border text-warm-text font-mono"
+                              placeholder="https://github.com/..."
+                            />
+                          </div>
+                        </div>
+
+                        {/* Featured toggle */}
+                        <div className="flex items-center gap-3">
+                          <label className="text-[11px] font-bold text-warm-secondary uppercase tracking-wider">Featured on Homepage</label>
+                          <button
+                            onClick={() => handleUpdateProject(proj.id, 'featured', !proj.featured)}
+                            className={`w-10 h-5 rounded-full transition-colors relative ${proj.featured ? 'bg-emerald-500' : 'bg-warm-border'}`}
+                          >
+                            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${proj.featured ? 'left-5' : 'left-0.5'}`} />
+                          </button>
+                        </div>
+
+                        {/* Save button */}
+                        <div className="flex items-center gap-2 pt-2">
+                          <button
+                            onClick={() => handleSaveProject(proj.id)}
+                            className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700 transition flex items-center gap-1.5 shadow-apple-sm"
+                          >
+                            <Save size={13} />
+                            <span>Save Project</span>
+                          </button>
+                          <button
+                            onClick={() => setEditingProjectId(null)}
+                            className="px-4 py-2 rounded-xl bg-warm-surface border border-warm-border text-xs text-warm-secondary hover:text-warm-text transition"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1712,6 +1932,110 @@ export default function AdminPage() {
                     <Copy size={13} />
                     <span>Copy</span>
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 10.5. LIVE STREAM */}
+          {activeTab === 'liveStream' && (
+            <div className="apple-card p-6 sm:p-8 space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-warm-text flex items-center gap-2">
+                    <Radio size={18} className="text-red-500" />
+                    <span>Live Stream Broadcast</span>
+                  </h2>
+                  <p className="text-xs text-warm-secondary mt-1">
+                    When you are streaming (YouTube Live, Twitch, etc.), put your link and title here. It will immediately show a vibrant live badge on top of your home page.
+                  </p>
+                </div>
+                {settings.liveStream?.url && (
+                  <span className="px-2.5 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 animate-pulse">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
+                    Live Right Now
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-warm-secondary uppercase tracking-wider">
+                    Live Stream URL
+                  </label>
+                  <input
+                    type="url"
+                    value={settings.liveStream?.url || ''}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        liveStream: {
+                          url: e.target.value,
+                          title: settings.liveStream?.title || ''
+                        }
+                      })
+                    }
+                    placeholder="https://www.youtube.com/watch?v=... or https://twitch.tv/..."
+                    className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-warm-surface border border-warm-border text-warm-text font-mono"
+                  />
+                  <p className="text-[11px] text-warm-muted">
+                    Leave blank to turn off the live broadcast banner on the home page.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-warm-secondary uppercase tracking-wider">
+                    Stream Title / Description
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.liveStream?.title || ''}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        liveStream: {
+                          url: settings.liveStream?.url || '',
+                          title: e.target.value
+                        }
+                      })
+                    }
+                    placeholder="e.g. Playing GTA V / Building Next.js Universe with Sid"
+                    className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-warm-surface border border-warm-border text-warm-text"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2.5 pt-2">
+                  <button
+                    onClick={() => {
+                      universeStore.set('siteSettings', settings);
+                      notify(
+                        settings.liveStream?.url?.trim()
+                          ? 'Live stream banner is now active on homepage!'
+                          : 'Live stream banner removed.'
+                      );
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-medium transition flex items-center gap-1.5 shadow-apple-sm"
+                  >
+                    <Save size={13} />
+                    <span>{settings.liveStream?.url?.trim() ? 'Publish Live Stream' : 'Save'}</span>
+                  </button>
+
+                  {settings.liveStream?.url && (
+                    <button
+                      onClick={() => {
+                        const updated = {
+                          ...settings,
+                          liveStream: { url: '', title: '' }
+                        };
+                        setSettings(updated);
+                        universeStore.set('siteSettings', updated);
+                        notify('Live stream ended and banner removed.');
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-warm-surface border border-warm-border text-xs text-warm-secondary hover:text-warm-text transition"
+                    >
+                      End Stream
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

@@ -47,7 +47,13 @@ export function BackgroundMusicPlayer({ settings }: BackgroundMusicPlayerProps) 
       audio.pause();
       setIsPlaying(false);
     } else {
-      // If paused or stalled, calling play() resumes from current position
+      // Set to beginning if requested or if song ended
+      if (audio.ended || !hasStarted) {
+        try {
+          audio.currentTime = 0;
+        } catch (e) {}
+      }
+
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise
@@ -56,13 +62,21 @@ export function BackgroundMusicPlayer({ settings }: BackgroundMusicPlayerProps) 
             setHasStarted(true);
           })
           .catch((err) => {
-            console.warn('Playback error / Autoplay blocked, reloading stream:', err);
-            // If the browser audio buffer was cleared upon pause, reload audio src and play
-            audio.load();
-            audio.play().then(() => {
-              setIsPlaying(true);
-              setHasStarted(true);
-            }).catch((e) => console.warn('Secondary play failed:', e));
+            console.warn('Playback error / Autoplay blocked on mobile, reloading:', err);
+            // On mobile iOS/Android, reload and re-trigger play on user click
+            try {
+              const currentSrc = audio.src;
+              audio.src = '';
+              audio.src = currentSrc;
+              audio.load();
+              audio.currentTime = 0;
+              audio.play().then(() => {
+                setIsPlaying(true);
+                setHasStarted(true);
+              }).catch((e) => console.warn('Secondary mobile play failed:', e));
+            } catch (reloadErr) {
+              console.warn('Reload audio failed:', reloadErr);
+            }
           });
       }
     }
@@ -80,7 +94,8 @@ export function BackgroundMusicPlayer({ settings }: BackgroundMusicPlayerProps) 
         ref={audioRef}
         src={musicConfig.audioUrl}
         loop
-        preload="metadata"
+        preload="auto"
+        playsInline
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onEnded={() => setIsPlaying(false)}

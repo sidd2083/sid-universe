@@ -13,6 +13,7 @@ import AnonymousAndQASection from '@/components/home/AnonymousAndQASection';
 import InterestsSection from '@/components/home/InterestsSection';
 import { BackgroundMusicPlayer } from '@/components/home/BackgroundMusicPlayer';
 import { SendTouchButton } from '@/components/home/SendTouchButton';
+import { LiveStreamBanner } from '@/components/home/LiveStreamBanner';
 import {
   universeStore,
   DEFAULT_SETTINGS,
@@ -96,6 +97,9 @@ export default function HomePage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-16 sm:space-y-24">
+      {/* Live Stream Banner (Only visible when Sid is actively streaming) */}
+      <LiveStreamBanner url={settings.liveStream?.url} title={settings.liveStream?.title} />
+
       {/* 1. HERO: Multilingual Greeting, Large Flip Clock & Live Activity Card */}
       <section className="space-y-8 pt-2 text-center">
         <MultilingualGreeting

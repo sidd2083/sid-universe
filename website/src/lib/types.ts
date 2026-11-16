@@ -197,6 +197,10 @@ export interface SiteSettings {
     audioUrl: string;
     autoplay?: boolean;
   };
+  liveStream?: {
+    url: string;
+    title: string;
+  };
   socialLinks: {
     snapchat?: string;
     discord?: string;
