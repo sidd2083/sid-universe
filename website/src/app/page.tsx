@@ -14,6 +14,7 @@ import InterestsSection from '@/components/home/InterestsSection';
 import { BackgroundMusicPlayer } from '@/components/home/BackgroundMusicPlayer';
 import { SendTouchButton } from '@/components/home/SendTouchButton';
 import { LiveStreamBanner } from '@/components/home/LiveStreamBanner';
+import { DailyThoughtBox } from '@/components/home/DailyThoughtBox';
 import {
   universeStore,
   DEFAULT_SETTINGS,
@@ -56,6 +57,17 @@ export default function HomePage() {
     setWatchlist(universeStore.get('watchlist', DEFAULT_WATCHLIST));
     setPublishedQA(universeStore.get('publishedQA', DEFAULT_PUBLISHED_QA));
     setActivity(universeStore.get('publicActivity', DEFAULT_ACTIVITY));
+
+    // Fetch latest published Q&A from server
+    fetch('/api/messages')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.publishedQA && Array.isArray(data.publishedQA) && data.publishedQA.length > 0) {
+          setPublishedQA(data.publishedQA);
+          universeStore.set('publishedQA', data.publishedQA);
+        }
+      })
+      .catch((err) => console.warn('Homepage publishedQA fetch notice:', err));
 
     // Listen for live updates
     function handleUpdate(e: any) {
@@ -112,6 +124,9 @@ export default function HomePage() {
         <div className="pt-2 pb-2">
           <FlipClock format={settings.clockFormat || '12h'} />
         </div>
+
+        {/* Daily Thoughts, Essay & Philosophy Box (Shows only when text is entered in Admin) */}
+        <DailyThoughtBox thought={settings.dailyThought} />
 
         {/* Live Activity Card & Touch Sid Action */}
         <div className="pt-2 flex flex-col items-center gap-3.5">

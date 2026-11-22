@@ -14,7 +14,31 @@ export default function AnonymousMessagesPage() {
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
+    // 1. Initial load from store
     setPublishedQA(universeStore.get('publishedQA', DEFAULT_PUBLISHED_QA));
+
+    // 2. Fetch live published Q&As from server API
+    fetch('/api/messages')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.publishedQA && Array.isArray(data.publishedQA) && data.publishedQA.length > 0) {
+          setPublishedQA(data.publishedQA);
+          universeStore.set('publishedQA', data.publishedQA);
+        }
+      })
+      .catch((err) => console.warn('Fetch publishedQA notice:', err));
+
+    // 3. Listen for store updates
+    const handleUpdate = (e: any) => {
+      if (e.detail?.key === 'publishedQA' && Array.isArray(e.detail.value)) {
+        setPublishedQA(e.detail.value);
+      }
+    };
+    window.addEventListener('sid_store_updated', handleUpdate);
+
+    return () => {
+      window.removeEventListener('sid_store_updated', handleUpdate);
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

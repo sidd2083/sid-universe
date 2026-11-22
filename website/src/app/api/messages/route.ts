@@ -14,12 +14,16 @@ import {
 
 // In-memory cache fallback for instant response
 let inMemoryMessages: any[] = [];
+let inMemoryQA: any[] = [];
 
 export async function GET() {
   try {
     let messages: any[] = [];
+    let publishedQA: any[] = [];
+
+    // 1. Fetch anonymous messages
     try {
-      const q = query(collection(db, 'anonymousMessages'), orderBy('createdAt', 'desc'), limit(50));
+      const q = query(collection(db, 'anonymousMessages'), orderBy('createdAt', 'desc'), limit(100));
       const snap = await getDocs(q);
       if (!snap.empty) {
         snap.forEach((d) => {
@@ -37,21 +41,48 @@ export async function GET() {
         });
       }
     } catch (fsErr: any) {
-      console.warn('Firestore read in /api/messages:', fsErr?.message);
+      console.warn('Firestore read in /api/messages (messages):', fsErr?.message);
     }
 
     if (messages.length === 0 && inMemoryMessages.length > 0) {
       messages = inMemoryMessages;
     }
 
+    // 2. Fetch published Q&A
+    try {
+      const qaQuery = query(collection(db, 'publishedQA'), orderBy('publishedAt', 'desc'), limit(100));
+      const qaSnap = await getDocs(qaQuery);
+      if (!qaSnap.empty) {
+        qaSnap.forEach((d) => {
+          const data = d.data();
+          publishedQA.push({
+            id: d.id,
+            messageId: data.messageId || d.id,
+            question: data.question || data.message || '',
+            reply: data.reply || '',
+            publishedAt: data.publishedAt || new Date().toISOString(),
+            category: data.category || 'General'
+          });
+        });
+      }
+    } catch (fsErr: any) {
+      console.warn('Firestore read in /api/messages (publishedQA):', fsErr?.message);
+    }
+
+    if (publishedQA.length === 0 && inMemoryQA.length > 0) {
+      publishedQA = inMemoryQA;
+    }
+
     return NextResponse.json({
       success: true,
-      messages
+      messages,
+      publishedQA
     }, {
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Cache-Control': 'no-store, max-age=0'
       }
     });
   } catch (error: any) {
@@ -73,8 +104,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Message cannot be empty.' }, { status: 400 });
     }
 
-    if (trimmed.length > 2000) {
-      return NextResponse.json({ error: 'Message exceeds maximum length of 2000 characters.' }, { status: 400 });
+    if (trimmed.length > 3000) {
+      return NextResponse.json({ error: 'Message exceeds maximum length of 3000 characters.' }, { status: 400 });
     }
 
     let docId = `msg-${Date.now()}`;
@@ -121,11 +152,11 @@ export async function POST(req: Request) {
   }
 }
 
-// Reply to a confession/message and publish it to Public Q&A
+// Reply to an anonymous message and publish it to Public Q&A
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { id, reply, isPublished = true } = body;
+    const { id, reply, question, isPublished = true } = body;
 
     if (!id || !reply) {
       return NextResponse.json({ error: 'Message ID and reply are required.' }, { status: 400 });
@@ -133,13 +164,26 @@ export async function PUT(req: Request) {
 
     const trimmedReply = reply.trim();
 
-    // Update in-memory
+    // Update in-memory message
     const memMsg = inMemoryMessages.find((m) => m.id === id);
     if (memMsg) {
       memMsg.reply = trimmedReply;
       memMsg.isRead = true;
       memMsg.isPublished = isPublished;
     }
+
+    const effectiveQuestion = question || memMsg?.message || memMsg?.content || 'Question from visitor';
+
+    const newQAEntry = {
+      id: `qa-${Date.now()}`,
+      messageId: id,
+      question: effectiveQuestion,
+      reply: trimmedReply,
+      publishedAt: new Date().toISOString(),
+      category: body.category || 'General'
+    };
+
+    inMemoryQA.unshift(newQAEntry);
 
     // Update in Firestore
     try {
@@ -151,14 +195,15 @@ export async function PUT(req: Request) {
         repliedAt: serverTimestamp()
       });
 
-      // Also publish to publishedQA collection
+      // Publish to publishedQA collection
       if (isPublished) {
         await addDoc(collection(db, 'publishedQA'), {
           messageId: id,
-          question: memMsg?.message || memMsg?.content || body.question || 'Confession / Question',
+          question: effectiveQuestion,
           reply: trimmedReply,
           publishedAt: new Date().toISOString(),
-          category: 'Confession'
+          category: body.category || 'General',
+          updatedAt: serverTimestamp()
         });
       }
     } catch (fsErr: any) {
@@ -167,7 +212,8 @@ export async function PUT(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: 'Reply saved and published to Q&A!'
+      message: 'Reply saved and published to website Q&A!',
+      qa: newQAEntry
     }, {
       headers: {
         'Access-Control-Allow-Origin': '*',

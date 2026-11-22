@@ -26,6 +26,7 @@
     <!-- Navigation Tabs -->
     <nav class="nav-tabs">
       <button class="tab-btn active" data-tab="tab-activity">⚡ Activity & Status</button>
+      <button class="tab-btn" data-tab="tab-livestream">🔴 Live Stream</button>
       <button class="tab-btn" data-tab="tab-confessions">
         💌 Confessions <span class="tab-badge" id="confessionCountBadge" style="display:none;">0</span>
       </button>
@@ -147,6 +148,44 @@
             <span class="telemetry-label">Project</span>
             <div class="telemetry-value" id="currentCodingVal">Idle</div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 1.5: LIVE STREAM BROADCAST -->
+    <div id="tab-livestream" class="tab-content">
+      <div class="card" style="border-left: 4px solid #EF4444;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 class="section-title" style="margin-bottom: 0;">🔴 Live Stream Broadcast Banner</h3>
+          <span id="liveStreamBadge" class="tab-badge" style="background: #FEE2E2; color: #DC2626; display: none;">LIVE NOW</span>
+        </div>
+        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 14px;">
+          When you are streaming on YouTube, Twitch or anywhere, set the URL and title here. It will immediately show an eye-catching banner at the top of your website.
+        </p>
+
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label for="liveStreamUrlInput">Live Stream URL (e.g. YouTube Live, Twitch)</label>
+          <input
+            type="text"
+            id="liveStreamUrlInput"
+            class="text-input"
+            placeholder="https://youtube.com/live/... or https://twitch.tv/..."
+          >
+        </div>
+
+        <div class="field-group" style="margin-bottom: 14px;">
+          <label for="liveStreamTitleInput">Stream Title / Game Name</label>
+          <input
+            type="text"
+            id="liveStreamTitleInput"
+            class="text-input"
+            placeholder="e.g. Playing GTA V / Coding with Sid"
+          >
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button id="btnPublishStream" class="btn btn-primary" style="flex: 1; background: #DC2626;">Publish Live Stream</button>
+          <button id="btnEndStream" class="btn btn-secondary" style="flex: 1;">End Stream & Hide</button>
         </div>
       </div>
     </div>

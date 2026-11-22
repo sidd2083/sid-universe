@@ -378,6 +378,46 @@ ipcMain.handle('fetch-touches', async () => {
   }
 });
 
+// Live stream status handlers
+ipcMain.handle('get-livestream', async () => {
+  const url = (config.apiUrl || 'http://localhost:3000').replace(/\/$/, '');
+  try {
+    const res = await fetch(`${url}/api/store?collection=siteSettings`);
+    if (res.ok) {
+      const data = await res.json();
+      return { success: true, liveStream: data?.data?.liveStream || { url: '', title: '' } };
+    }
+  } catch (e) {}
+  return { success: true, liveStream: { url: '', title: '' } };
+});
+
+ipcMain.handle('set-livestream', async (_event, params) => {
+  const { url: streamUrl, title } = params || {};
+  const webUrl = (config.apiUrl || 'http://localhost:3000').replace(/\/$/, '');
+  try {
+    const res = await fetch(`${webUrl}/api/store`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        collection: 'siteSettings',
+        id: 'general',
+        data: {
+          liveStream: {
+            url: streamUrl || '',
+            title: title || ''
+          }
+        }
+      })
+    });
+    if (res.ok) {
+      return { success: true };
+    }
+    return { success: false, error: `HTTP ${res.status}` };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
 // Periodic Touch Receiver from Website to trigger Windows Desktop Notification
 async function pollTouches() {
   if (!config.apiUrl) return;

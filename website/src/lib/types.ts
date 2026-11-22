@@ -201,6 +201,11 @@ export interface SiteSettings {
     url: string;
     title: string;
   };
+  dailyThought?: {
+    title?: string;
+    content: string;
+    updatedAt?: string;
+  } | string;
   socialLinks: {
     snapchat?: string;
     discord?: string;

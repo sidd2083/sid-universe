@@ -11,7 +11,7 @@ interface FlipCardProps {
   label?: string;
 }
 
-function FlipUnit({ value, label }: FlipCardProps) {
+function FlipUnit({ value }: FlipCardProps) {
   return (
     <div className="flex flex-col items-center">
       <div className="flip-clock-unit w-16 sm:w-24 md:w-28 h-20 sm:h-28 md:h-32">
@@ -20,11 +20,6 @@ function FlipUnit({ value, label }: FlipCardProps) {
           {value}
         </span>
       </div>
-      {label && (
-        <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-warm-muted mt-2">
-          {label}
-        </span>
-      )}
     </div>
   );
 }
@@ -79,11 +74,11 @@ export default function FlipClock({ format = '12h' }: Props) {
     <div className="flex flex-col items-start sm:items-center">
       {/* Clock Units */}
       <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
-        <FlipUnit value={hours} label="Hours" />
-        <span className="text-2xl sm:text-4xl text-warm-border font-bold -mt-5">:</span>
-        <FlipUnit value={minutes} label="Minutes" />
-        <span className="text-2xl sm:text-4xl text-warm-border font-bold -mt-5">:</span>
-        <FlipUnit value={seconds} label="Seconds" />
+        <FlipUnit value={hours} />
+        <span className="text-2xl sm:text-4xl text-warm-border font-bold -mt-2">:</span>
+        <FlipUnit value={minutes} />
+        <span className="text-2xl sm:text-4xl text-warm-border font-bold -mt-2">:</span>
+        <FlipUnit value={seconds} />
 
         {format === '12h' && (
           <div className="flex flex-col items-center self-start mt-2 sm:mt-4">

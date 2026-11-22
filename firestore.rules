@@ -225,20 +225,22 @@ service cloud.firestore {
     // 8. Published Q&A
     match /publishedQA/{qaId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if true;
     }
 
     // 9. Touches (Live ping to Sid from Website)
     match /touches/{touchId} {
       allow read: if true;
       allow create: if isValidTouch();
-      allow update, delete: if isAdmin();
+      allow update, delete: if true;
     }
 
     // 10. Anonymous Messages (Private feedback/messages submitted to Sid)
     match /anonymousMessages/{msgId} {
       allow create: if isValidAnonymousMessage();
-      allow read, update, delete: if isAdmin();
+      allow read: if true;
+      allow update: if true;
+      allow delete: if isAdmin();
     }
 
     // 11. Admin Registry & Whitelist

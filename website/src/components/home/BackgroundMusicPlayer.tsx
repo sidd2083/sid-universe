@@ -8,6 +8,8 @@ interface BackgroundMusicPlayerProps {
   settings?: SiteSettings;
 }
 
+const DEFAULT_AUDIO_URL = '/audio/lofi-study.wav';
+
 export function BackgroundMusicPlayer({ settings }: BackgroundMusicPlayerProps) {
   const musicConfig = settings?.backgroundMusic;
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -16,26 +18,61 @@ export function BackgroundMusicPlayer({ settings }: BackgroundMusicPlayerProps) 
   const [isMuted, setIsMuted] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
 
-  // Attempt autoplay if configured (browsers may restrict this without user gesture)
+  // Determine working audio URL (replace obsolete/broken pixabay URLs with guaranteed local audio)
+  const rawUrl = musicConfig?.audioUrl || DEFAULT_AUDIO_URL;
+  const resolvedAudioUrl = rawUrl.includes('cdn.pixabay.com') ? DEFAULT_AUDIO_URL : rawUrl;
+
+  const isExplicitlyDisabled = musicConfig?.enabled === false;
+
+  // Universal Autoplay & Mobile Audio Unlock Mechanism
   useEffect(() => {
-    if (musicConfig?.autoplay && musicConfig?.enabled && musicConfig?.audioUrl && audioRef.current && !hasStarted) {
-      const playPromise = audioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise
+    if (isExplicitlyDisabled) return;
+
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    // Set gentle ambient volume
+    audio.volume = 0.65;
+
+    // 1. Direct Autoplay Attempt
+    const attemptAutoplay = () => {
+      const promise = audio.play();
+      if (promise !== undefined) {
+        promise
           .then(() => {
             setIsPlaying(true);
             setHasStarted(true);
           })
           .catch(() => {
-            // Autoplay blocked by browser policy until interaction
+            // Browser autoplay policy blocked unprompted audio on initial page load
             setIsPlaying(false);
+
+            // 2. Global First-Interaction Listener (for iOS, Android, Safari, Chrome)
+            // As soon as the user taps, scrolls, or clicks anywhere on the site, audio starts playing immediately.
+            const unlockAudio = () => {
+              if (audioRef.current && audioRef.current.paused) {
+                audioRef.current
+                  .play()
+                  .then(() => {
+                    setIsPlaying(true);
+                    setHasStarted(true);
+                  })
+                  .catch((e) => console.warn('Interaction audio unlock notice:', e));
+              }
+            };
+
+            const triggerEvents = ['click', 'touchstart', 'touchend', 'pointerdown', 'keydown'];
+            triggerEvents.forEach((evt) => {
+              window.addEventListener(evt, unlockAudio, { once: true, passive: true });
+            });
           });
       }
-    }
-  }, [musicConfig?.autoplay, musicConfig?.enabled, musicConfig?.audioUrl, hasStarted]);
+    };
 
-  // If not enabled or no URL, do not render UI (called AFTER all hooks)
-  if (!musicConfig || !musicConfig.enabled || !musicConfig.audioUrl) {
+    attemptAutoplay();
+  }, [resolvedAudioUrl, isExplicitlyDisabled]);
+
+  if (isExplicitlyDisabled) {
     return null;
   }
 
@@ -47,13 +84,6 @@ export function BackgroundMusicPlayer({ settings }: BackgroundMusicPlayerProps) 
       audio.pause();
       setIsPlaying(false);
     } else {
-      // Set to beginning if requested or if song ended
-      if (audio.ended || !hasStarted) {
-        try {
-          audio.currentTime = 0;
-        } catch (e) {}
-      }
-
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise
@@ -62,20 +92,16 @@ export function BackgroundMusicPlayer({ settings }: BackgroundMusicPlayerProps) 
             setHasStarted(true);
           })
           .catch((err) => {
-            console.warn('Playback error / Autoplay blocked on mobile, reloading:', err);
-            // On mobile iOS/Android, reload and re-trigger play on user click
+            console.warn('Playback resume notice, reloading stream:', err);
             try {
-              const currentSrc = audio.src;
-              audio.src = '';
-              audio.src = currentSrc;
               audio.load();
               audio.currentTime = 0;
               audio.play().then(() => {
                 setIsPlaying(true);
                 setHasStarted(true);
-              }).catch((e) => console.warn('Secondary mobile play failed:', e));
+              }).catch((e) => console.warn('Retry play notice:', e));
             } catch (reloadErr) {
-              console.warn('Reload audio failed:', reloadErr);
+              console.warn('Audio reload error:', reloadErr);
             }
           });
       }
@@ -92,22 +118,27 @@ export function BackgroundMusicPlayer({ settings }: BackgroundMusicPlayerProps) 
     <div className="fixed bottom-5 right-5 z-40 flex items-center gap-2 bg-[#FAF9F6]/95 backdrop-blur-md border border-[#E8E6DF] shadow-sm rounded-full px-3.5 py-2 transition-all duration-200 hover:shadow-md hover:border-[#D8D6CF]">
       <audio
         ref={audioRef}
-        src={musicConfig.audioUrl}
+        src={resolvedAudioUrl}
         loop
         preload="auto"
         playsInline
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
+        onEnded={() => {
+          if (audioRef.current) {
+            audioRef.current.currentTime = 0;
+            audioRef.current.play().catch(() => {});
+          }
+        }}
       />
 
       {/* Pulsing indicator or static icon */}
       <div className="flex items-center justify-center w-7 h-7 rounded-full bg-[#F3F2ED] text-[#151413]">
         {isPlaying ? (
           <div className="flex items-end gap-[2px] h-3">
-            <span className="w-[2px] h-2 bg-[#059669] animate-[bounce_0.8s_infinite]"></span>
-            <span className="w-[2px] h-3 bg-[#059669] animate-[bounce_0.6s_infinite]"></span>
-            <span className="w-[2px] h-1.5 bg-[#059669] animate-[bounce_0.9s_infinite]"></span>
+            <span className="w-[2px] h-2 bg-[#059669] animate-[bounce_0.8s_infinite]" />
+            <span className="w-[2px] h-3 bg-[#059669] animate-[bounce_0.6s_infinite]" />
+            <span className="w-[2px] h-1.5 bg-[#059669] animate-[bounce_0.9s_infinite]" />
           </div>
         ) : (
           <Music className="w-3.5 h-3.5 text-[#73716B]" />
@@ -117,20 +148,18 @@ export function BackgroundMusicPlayer({ settings }: BackgroundMusicPlayerProps) 
       {/* Song title & Artist */}
       <div className="flex flex-col text-left pr-1 max-w-[140px] sm:max-w-[180px] overflow-hidden">
         <span className="text-[11px] font-semibold text-[#151413] truncate leading-tight">
-          {musicConfig.title || 'Atmospheric Track'}
+          {musicConfig?.title || 'Lofi Study Session'}
         </span>
-        {musicConfig.artist && (
-          <span className="text-[10px] text-[#73716B] truncate leading-tight">
-            {musicConfig.artist}
-          </span>
-        )}
+        <span className="text-[10px] text-[#73716B] truncate leading-tight">
+          {musicConfig?.artist || 'Chilled Beats'}
+        </span>
       </div>
 
       {/* Play/Pause Button */}
       <button
         onClick={togglePlay}
         title={isPlaying ? 'Pause music' : 'Play music'}
-        className="flex items-center justify-center w-7 h-7 rounded-full hover:bg-[#EAE8E2] text-[#151413] transition-colors"
+        className="flex items-center justify-center w-7 h-7 rounded-full hover:bg-[#EAE8E2] text-[#151413] transition-colors cursor-pointer"
       >
         {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
       </button>
@@ -139,7 +168,7 @@ export function BackgroundMusicPlayer({ settings }: BackgroundMusicPlayerProps) 
       <button
         onClick={toggleMute}
         title={isMuted ? 'Unmute' : 'Mute'}
-        className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-[#EAE8E2] text-[#73716B] hover:text-[#151413] transition-colors"
+        className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-[#EAE8E2] text-[#73716B] hover:text-[#151413] transition-colors cursor-pointer"
       >
         {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
       </button>

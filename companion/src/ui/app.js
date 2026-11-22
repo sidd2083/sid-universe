@@ -17,6 +17,12 @@ const api = window.companionAPI || {
 const tabBtns = document.querySelectorAll('.tab-btn');
 const tabContents = document.querySelectorAll('.tab-content');
 
+const liveStreamUrlInput = document.getElementById('liveStreamUrlInput');
+const liveStreamTitleInput = document.getElementById('liveStreamTitleInput');
+const btnPublishStream = document.getElementById('btnPublishStream');
+const btnEndStream = document.getElementById('btnEndStream');
+const liveStreamBadge = document.getElementById('liveStreamBadge');
+
 const statusIndicator = document.getElementById('statusIndicator');
 const statusSubtitle = document.getElementById('statusSubtitle');
 const actionBroadcastVal = document.getElementById('actionBroadcastVal');
@@ -388,12 +394,69 @@ if (window.electron?.ipcRenderer) {
   });
 }
 
+// Live Stream Broadcast Handler
+async function loadLiveStream() {
+  if (!window.electron?.ipcRenderer) return;
+  try {
+    const res = await window.electron.ipcRenderer.invoke('get-livestream');
+    if (res && res.liveStream) {
+      if (liveStreamUrlInput) liveStreamUrlInput.value = res.liveStream.url || '';
+      if (liveStreamTitleInput) liveStreamTitleInput.value = res.liveStream.title || '';
+      if (res.liveStream.url && res.liveStream.url.trim()) {
+        if (liveStreamBadge) liveStreamBadge.style.display = 'inline-block';
+      } else {
+        if (liveStreamBadge) liveStreamBadge.style.display = 'none';
+      }
+    }
+  } catch (err) {
+    console.warn('Load livestream error:', err);
+  }
+}
+
+if (btnPublishStream) {
+  btnPublishStream.addEventListener('click', async () => {
+    const url = liveStreamUrlInput ? liveStreamUrlInput.value.trim() : '';
+    const title = liveStreamTitleInput ? liveStreamTitleInput.value.trim() : '';
+
+    if (!url) {
+      showToast('Please enter a live stream URL');
+      return;
+    }
+
+    if (window.electron?.ipcRenderer) {
+      const res = await window.electron.ipcRenderer.invoke('set-livestream', { url, title });
+      if (res.success) {
+        if (liveStreamBadge) liveStreamBadge.style.display = 'inline-block';
+        showToast('🔴 Live stream published to website homepage!');
+      } else {
+        showToast('Failed to update live stream: ' + (res.error || ''));
+      }
+    }
+  });
+}
+
+if (btnEndStream) {
+  btnEndStream.addEventListener('click', async () => {
+    if (liveStreamUrlInput) liveStreamUrlInput.value = '';
+    if (liveStreamTitleInput) liveStreamTitleInput.value = '';
+
+    if (window.electron?.ipcRenderer) {
+      const res = await window.electron.ipcRenderer.invoke('set-livestream', { url: '', title: '' });
+      if (res.success) {
+        if (liveStreamBadge) liveStreamBadge.style.display = 'none';
+        showToast('Live stream ended. Homepage banner removed.');
+      }
+    }
+  });
+}
+
 // Initial Load
 async function init() {
   try {
     const config = await api.getConfig();
     apiUrlInput.value = config.apiUrl || 'http://localhost:3000';
     apiTokenInput.value = config.apiToken || '';
+    loadLiveStream();
   } catch (e) {}
 }
 

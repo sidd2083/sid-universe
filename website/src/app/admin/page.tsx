@@ -31,7 +31,8 @@ import {
   Play,
   Pause,
   Upload,
-  FileAudio
+  FileAudio,
+  Sparkles
 } from 'lucide-react';
 import { auth, storage } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -490,6 +491,7 @@ export default function AdminPage() {
   const navItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'profile', label: 'Profile & Bio', icon: User },
+    { id: 'dailyThought', label: 'Daily Thoughts & Essay', icon: Sparkles },
     { id: 'greetings', label: 'Multilingual Greetings', icon: Languages },
     { id: 'clock', label: 'Clock & Location', icon: Clock },
     { id: 'activity', label: 'Live Activity', icon: Activity },
@@ -758,6 +760,122 @@ export default function AdminPage() {
                 <Save size={13} />
                 <span>Save Profile Settings</span>
               </button>
+            </div>
+          )}
+
+          {/* 2.5. DAILY THOUGHTS, ESSAYS & PHILOSOPHY */}
+          {activeTab === 'dailyThought' && (
+            <div className="apple-card p-6 sm:p-8 space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-warm-text flex items-center gap-2">
+                    <Sparkles size={18} className="text-amber-600" />
+                    <span>Daily Thoughts, Essay & Philosophy</span>
+                  </h2>
+                  <p className="text-xs text-warm-secondary mt-1">
+                    Write your daily thoughts, essays, or philosophical reflections. This box appears right below Hetauda, Nepal on the homepage. If you leave it empty, the box will not be shown at all.
+                  </p>
+                </div>
+
+                {((typeof settings.dailyThought === 'object' ? settings.dailyThought?.content : settings.dailyThought) || '').trim() && (
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">
+                    Active on Homepage
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                {/* Title */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-warm-secondary uppercase tracking-wider">
+                    Thought / Essay Title (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={typeof settings.dailyThought === 'object' ? settings.dailyThought?.title || '' : ''}
+                    onChange={(e) => {
+                      const curContent = typeof settings.dailyThought === 'object' ? settings.dailyThought?.content || '' : (settings.dailyThought || '');
+                      setSettings({
+                        ...settings,
+                        dailyThought: {
+                          title: e.target.value,
+                          content: curContent,
+                          updatedAt: new Date().toISOString()
+                        }
+                      });
+                    }}
+                    placeholder="e.g. On Ambition, Solitude & the Future"
+                    className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-warm-surface border border-warm-border text-warm-text"
+                  />
+                </div>
+
+                {/* Content */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-warm-secondary uppercase tracking-wider">
+                      Your Thought / Essay / Philosophy
+                    </label>
+                    <span className="text-[11px] font-mono text-warm-muted">
+                      {((typeof settings.dailyThought === 'object' ? settings.dailyThought?.content : settings.dailyThought) || '')
+                        .split(/\s+/)
+                        .filter(Boolean).length}{' '}
+                      words •{' '}
+                      {((typeof settings.dailyThought === 'object' ? settings.dailyThought?.content : settings.dailyThought) || '').length}{' '}
+                      characters
+                    </span>
+                  </div>
+                  <textarea
+                    rows={10}
+                    value={typeof settings.dailyThought === 'object' ? settings.dailyThought?.content || '' : (settings.dailyThought || '')}
+                    onChange={(e) => {
+                      const curTitle = typeof settings.dailyThought === 'object' ? settings.dailyThought?.title || '' : '';
+                      setSettings({
+                        ...settings,
+                        dailyThought: {
+                          title: curTitle,
+                          content: e.target.value,
+                          updatedAt: new Date().toISOString()
+                        }
+                      });
+                    }}
+                    placeholder="Write anything on your mind — your daily thoughts, struggles, philosophical musings, or long essays. Even 1,000+ words will be formatted cleanly without breaking the website..."
+                    className="w-full text-xs leading-relaxed p-4 rounded-xl bg-warm-surface border border-warm-border text-warm-text font-sans resize-y focus:outline-none focus:border-warm-text"
+                  />
+                  <p className="text-[11px] text-warm-muted">
+                    Supports unlimited words. Long essays will automatically feature a smooth expandable view so the page remains compact and gorgeous.
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2.5 pt-2">
+                  <button
+                    onClick={() => {
+                      universeStore.set('siteSettings', settings);
+                      const curContent = typeof settings.dailyThought === 'object' ? settings.dailyThought?.content || '' : (settings.dailyThought || '');
+                      notify(curContent.trim() ? 'Daily thought published to homepage!' : 'Daily thought removed from homepage.');
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-warm-text hover:bg-black text-white text-xs font-medium transition flex items-center gap-2 shadow-apple-sm"
+                  >
+                    <Save size={13} />
+                    <span>Publish Thought to Website</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const updated = {
+                        ...settings,
+                        dailyThought: { title: '', content: '', updatedAt: '' }
+                      };
+                      setSettings(updated);
+                      universeStore.set('siteSettings', updated);
+                      notify('Daily thought cleared. The box will not be shown on the homepage.');
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-warm-surface border border-warm-border text-xs text-warm-secondary hover:text-red-600 transition"
+                  >
+                    Clear & Remove Box
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

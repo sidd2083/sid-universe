@@ -79,11 +79,16 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     github: "https://github.com/sidd2083"
   },
   backgroundMusic: {
-    enabled: false,
+    enabled: true,
     title: "Lofi Study Session",
     artist: "Chilled Beats",
-    audioUrl: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3",
-    autoplay: false
+    audioUrl: "/audio/lofi-study.wav",
+    autoplay: true
+  },
+  dailyThought: {
+    title: "",
+    content: "",
+    updatedAt: ""
   },
   companionToken: ""
 };
