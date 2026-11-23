@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { MapPin } from 'lucide-react';
 import { universeStore, DEFAULT_SETTINGS } from '@/lib/db';
 import { SiteSettings } from '@/lib/types';
@@ -134,10 +133,6 @@ export default function Footer() {
           </div>
 
           <div className="flex items-center gap-4 text-warm-muted">
-            <Link href="/admin/login" className="hover:text-warm-text transition">
-              Admin Portal
-            </Link>
-            <span>•</span>
             <span>© {currentYear} Sid. All personal rights reserved.</span>
           </div>
         </div>
